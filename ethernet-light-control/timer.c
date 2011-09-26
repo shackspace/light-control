@@ -77,7 +77,7 @@ void timer_init (void)
 			TCCR1B |= (1<<WGM12) | (1<<CS10 | 0<<CS11 | 1<<CS12); //1024
 			TCNT1 = 0;
 			OCR1A = ((F_CPU / 1024) / 200) - 1;
-			TIMSK1 |= (1 << OCIE1A);
+			TIMSK1 = (1 << OCIE1A);
 		#else
 			TCCR1B |= (1<<WGM12) | (1<<CS10 | 0<<CS11 | 1<<CS12); //1024
 			TCNT1 = 0;

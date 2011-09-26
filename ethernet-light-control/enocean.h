@@ -16,7 +16,6 @@
 	#include "stack.h"
 	#include "usart.h"
 	#include "cmd.h"
-	#include "dhcpc.h"
 
 	#define ENOCEAN_PORT_EEPROM_STORE    	50
 	#define ENOCEAN_LICHT_EEPROM_STORE    	60

@@ -200,7 +200,12 @@ void usart_write_str(char *str)
 //----------------------------------------------------------------------------
 //Empfang eines Zeichens
 #if !USE_CAM
-ISR (USART_RX)
+
+#if defined (__AVR_ATmega328P__)
+	ISR (USART_RCX)
+#else
+	ISR (USART_RX)
+#endif
 {
 	if(!usart_status.usart_disable)
 	{

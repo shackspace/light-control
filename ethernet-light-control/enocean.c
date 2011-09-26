@@ -42,15 +42,16 @@ unsigned short enocean_port = PORT_DEFAULT;
 
 
 
-// ----------------------------------------------------------------------------
-// packet formats
-struct enocean_packet {
- uint8_t  data[14];
-};
-
-uint8_t lichtstatus_tmp[8];
+uint8_t licht_status[8];
 #define ENOCEAN_CHANNEL_STATUS	1
 #define ENOCEAN_CHANNEL_ACT		2
+
+
+enum hauptschalter_states {INIT, OFF, ON, OFF_WAIT};
+enum hauptschalter_states hauptschalter_status;
+
+uint8_t blinker;
+uint8_t blinker_cnt;
 
 
 
@@ -82,30 +83,33 @@ void enocean_init(void) {
   enocean_port = PORT_DEFAULT;
  }
 
-DDRD  |= 0xF0;
-PORTD &= 0x0F;
+	DDRD  |= 0xF8;	//PD4-PD7 = LEDs  PD3 = Hauptschalter LED
+	PORTD &= 0x07;
 
-DDRC  &= 0xF0;
-PORTC |= 0x0F;
+	DDRC  &= 0xE0;	//PC0-3 = Tastereingänge  PC4 = Hauptschalter
+	PORTC |= 0x1F;
 
-for (uint8_t i = 0; i < 8; i++)
-{
-	lichtstatus_tmp[i] = 0;
-
-	lichtstatus_tmp[i] = eeprom_read_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i);	
-
-	if (lichtstatus_tmp[i] == 0xFF)
+	for (uint8_t i = 0; i < 8; i++)
 	{
-		lichtstatus_tmp[i] = 0;
+		licht_status[i] = 0;
+
+		licht_status[i] = eeprom_read_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i);	
+
+		if (licht_status[i] == 0xFF)
+		{
+			licht_status[i] = 0;
+		}
+
+		licht_status[i] |= ENOCEAN_CHANNEL_ACT;
 	}
 
-	lichtstatus_tmp[i] |= ENOCEAN_CHANNEL_ACT;
+	hauptschalter_status = INIT;
 
-
-}
 
  return;
 }
+
+
 
 void send_test_msg(uint8_t addr, uint8_t cmd)
 {
@@ -125,35 +129,25 @@ void enocean_main(void) {
 
 	for (uint8_t i = 0; i < 8; i++) {
 
-		if (lichtstatus_tmp[i] & ENOCEAN_CHANNEL_ACT)
+		if (licht_status[i] & ENOCEAN_CHANNEL_ACT)
 		{
-			lichtstatus_tmp[i] &= ~ENOCEAN_CHANNEL_ACT;
-			enocean_packet_send(100+i,lichtstatus_tmp[i] & ENOCEAN_CHANNEL_STATUS);	
+			licht_status[i] &= ~ENOCEAN_CHANNEL_ACT;
+			enocean_packet_send(100+i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
 
-		    eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, lichtstatus_tmp[i] & ENOCEAN_CHANNEL_STATUS);	
-			send_test_msg(100+i,lichtstatus_tmp[i] & ENOCEAN_CHANNEL_STATUS);
+		    eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
+			send_test_msg(i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);
+		}
+
+		if (licht_status[i] & ENOCEAN_CHANNEL_STATUS)
+		{
+			PORTD |= _BV(4+i/2);
+		} else {
+			PORTD &= ~_BV(4+i/2);
 		}
 	
 	}
 
-	PORTD &= 0x0F;
-	if (lichtstatus_tmp[0] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(4);
-	if (lichtstatus_tmp[1] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(4);
-	if (lichtstatus_tmp[2] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(5);
-	if (lichtstatus_tmp[3] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(5);
-	if (lichtstatus_tmp[4] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(6);
-	if (lichtstatus_tmp[5] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(6);
-	if (lichtstatus_tmp[6] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(7);
-	if (lichtstatus_tmp[7] & ENOCEAN_CHANNEL_STATUS)
-		PORTD |= _BV(7);
-
+	
 
 
 	for (uint8_t i = 0; i < 4; i++)
@@ -162,26 +156,77 @@ void enocean_main(void) {
 		{
 			key_press ^= _BV(i);
 			
-			lichtstatus_tmp[i*2] |= ENOCEAN_CHANNEL_ACT;
-			lichtstatus_tmp[i*2+1] |= ENOCEAN_CHANNEL_ACT;
+			licht_status[i*2] |= ENOCEAN_CHANNEL_ACT;
+			licht_status[i*2+1] |= ENOCEAN_CHANNEL_ACT;
 
 
-			if ( (lichtstatus_tmp[i*2] & ENOCEAN_CHANNEL_STATUS) || (lichtstatus_tmp[i*2+1] & ENOCEAN_CHANNEL_STATUS))
+			if ( (licht_status[i*2] & ENOCEAN_CHANNEL_STATUS) || (licht_status[i*2+1] & ENOCEAN_CHANNEL_STATUS))
 			{
-				lichtstatus_tmp[i*2] &= ~(ENOCEAN_CHANNEL_STATUS);
-				lichtstatus_tmp[i*2+1] &= ~(ENOCEAN_CHANNEL_STATUS);
+				licht_status[i*2] &= ~(ENOCEAN_CHANNEL_STATUS);
+				licht_status[i*2+1] &= ~(ENOCEAN_CHANNEL_STATUS);
 			} else {
-				lichtstatus_tmp[i*2]   |= ENOCEAN_CHANNEL_STATUS;
-				lichtstatus_tmp[i*2+1] |= ENOCEAN_CHANNEL_STATUS;
+				licht_status[i*2]   |= ENOCEAN_CHANNEL_STATUS;
+				licht_status[i*2+1] |= ENOCEAN_CHANNEL_STATUS;
 			}
 		}
 	}
+
+	{
+		if (key_state & _BV(4))		//Abfrage des Hauptschalters true = EIN
+		{	
+			//Hauptschalter ein
+			if (hauptschalter_status == INIT || hauptschalter_status == OFF || hauptschalter_status == OFF_WAIT)
+			{
+				PORTD |= _BV(PD3);
+				enocean_packet_send(110,1);	
+				send_test_msg(10,1);
+				hauptschalter_status = ON;
+			}
+		} else {
+			//Hauptschalter aus
+			if (hauptschalter_status == INIT)
+			{
+				PORTD &= ~_BV(PD3);
+				enocean_packet_send(110,0);	
+				send_test_msg(10,0);
+				hauptschalter_status = OFF;
+			}
+			
+			if (hauptschalter_status == ON)
+			{
+				blinker_cnt = 0;
+				send_test_msg(10,2);
+				hauptschalter_status = OFF_WAIT;
+			}
+
+			if (hauptschalter_status == OFF_WAIT)
+			{
+
+				if (blinker) PORTD |= _BV(PD3); else PORTD &= ~_BV(PD3);
+				
+				if (blinker_cnt > 10)
+				{
+					PORTD &= ~_BV(PD3);
+					enocean_packet_send(110,0);	
+					send_test_msg(10,0);
+					hauptschalter_status = OFF;
+				}
+			}
+
+
+
+		}
+	}
+
+
+
+
 
 		/*if ( key_press & _BV(4) )
 		{
 			key_press ^= _BV(4);
 			
-			if ( lichtstatus_tmp[i*2] || lichtstatus_tmp[i*2+1])
+			if ( licht_status[i*2] || licht_status[i*2+1])
 			{
 				enocean_packet_send(100+i*2, 0 );
 				enocean_packet_send(101+i*2, 0 );
@@ -207,14 +252,19 @@ void enocean_get(unsigned char index) {
 		uint8_t addr   = eth_buffer[UDP_DATA_START+2];
 		uint8_t status = eth_buffer[UDP_DATA_START+3];
 		
-		if ((addr) > 8 || status > 1)	return;
+		if ((addr) < 8 && status <= 1)
+		{
+			licht_status[addr] |= ENOCEAN_CHANNEL_ACT;
+			if (status==0)
+				licht_status[addr] &= ~ENOCEAN_CHANNEL_STATUS;
+			else	
+				licht_status[addr] |= ENOCEAN_CHANNEL_STATUS;
+		}
 
-		lichtstatus_tmp[eth_buffer[UDP_DATA_START+2]] |= ENOCEAN_CHANNEL_ACT;
-		if (eth_buffer[UDP_DATA_START+3]==0)
-			lichtstatus_tmp[eth_buffer[UDP_DATA_START+2]] &= ~ENOCEAN_CHANNEL_STATUS;
-		else
-			lichtstatus_tmp[eth_buffer[UDP_DATA_START+2]] |= ENOCEAN_CHANNEL_STATUS;
-		
+		if ((addr) == 99 && status == 1)
+			PORTD |= _BV(PD3);
+		if ((addr) == 99 && status == 0)
+			PORTD ^= _BV(PD3);
 
 	} else {
 	//	enocean_packet_send(100+eth_buffer[UDP_DATA_START]-'0', eth_buffer[UDP_DATA_START+1]-'0' );
@@ -226,43 +276,25 @@ void enocean_get(unsigned char index) {
 // Called by timer, check changes
 void enocean_tick(void) {
 
+	static uint8_t counter = 1;
+	
+	if (!counter--)
+	{
+		blinker ^= 1;
+		counter=1;
+		blinker_cnt++;
+	}
 }
 
-// ----------------------------------------------------------------------------
-// DMX transmission
-#if defined(__AVR_ATmega328P__)
-ISR (USART_TX_vect) {
-#else
-ISR (USART_TXC_vect) {
-#endif
-}
 
-// ----------------------------------------------------------------------------
-// DMX reception
-#if defined(__AVR_ATmega328P__)
-ISR (USART_RX_vect)
-#else
-ISR (USART_RXC_vect)
-#endif
-{
-#if defined(__AVR_ATmega328P__)
- unsigned char status = UCSR0A; 	// status register must be read prior to UDR (because of 2 byte fifo buffer)
- unsigned char byte = UDR0; 		// immediately catch data from i/o register to enable reception of the next byte
-#else
- unsigned char status = UCSRA; 	// status register must be read prior to UDR (because of 2 byte fifo buffer)
- unsigned char byte = UDR; 		// immediately catch data from i/o register to enable reception of the next byte
-#endif
-byte++;
-status++;
-}
 
 
 void enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
-	uint8_t packet_tmp[14] = {0xa5, 0x5a, 0x0b, 0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0x10, 0};
-
-	packet_tmp[4] = ((cmd+2) << 5 | 16);
-	packet_tmp[11] = (addr);
+	uint8_t packet_tmp[14] = {0xa5, 0x5a, 0x0b, 0x05, 
+		((cmd+2) << 5 | 16),
+		0, 0, 0, 0, 0, 0,
+		(addr), 0x10, 0};
 
 	for (uint8_t i = 2; i < 13; i++)
 		packet_tmp[13] += packet_tmp[i];
