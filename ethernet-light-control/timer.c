@@ -63,10 +63,17 @@ void timer_init (void)
 			TIMSK = (1<<OCIE2);			
 		#endif
 	#else
-			TCCR1B |= (1<<WGM12) | (1<<CS10 | 0<<CS11 | 1<<CS12);
+		#if defined (__AVR_ATmega328P__)
+			TCCR1B |= (1<<WGM12) | (1<<CS10 | 0<<CS11 | 1<<CS12); //1024
 			TCNT1 = 0;
-			OCR1A = (F_CPU / 1024) - 1;
+			OCR1A = ((F_CPU / 1024) / 200) - 1;
+			TIMSK1 |= (1 << OCIE1A);
+		#else
+			TCCR1B |= (1<<WGM12) | (1<<CS10 | 0<<CS11 | 1<<CS12); //1024
+			TCNT1 = 0;
+			OCR1A = ((F_CPU / 1024) / 200) - 1;
 			TIMSK |= (1 << OCIE1A);
+		#endif
 	#endif
 return;
 };
@@ -83,18 +90,31 @@ return;
 	ISR (TIMER1_COMPA_vect)
 #endif
 {
-	//tick 1 second
-	time++;
-    if((stack_watchdog++) > WTT)  //emergency reset of the stack
-    {
-        RESET();
+
+	static uint16_t    prescaler_10ms = 2;
+	if(!prescaler_10ms--)
+	{
+		prescaler_10ms = 1;
 	}
-    eth.timer = 1;
-	#if USE_NTP
-	ntp_timer--;
-	#endif //USE_NTP
-	#if USE_DHCP
-	if ( dhcp_lease > 0 ) dhcp_lease--;
-    if ( gp_timer   > 0 ) gp_timer--;
-    #endif //USE_DHCP
+
+	static uint16_t    prescaler_s = 200;
+	if(!prescaler_s--)
+	{
+		prescaler_s = 199;
+		
+		//tick 1 second
+		time++;
+		if((stack_watchdog++) > WTT)  //emergency reset of the stack
+		{
+			RESET();
+		}
+		eth.timer = 1;
+		#if USE_NTP
+		ntp_timer--;
+		#endif //USE_NTP
+		#if USE_DHCP
+		if ( dhcp_lease > 0 ) dhcp_lease--;
+		if ( gp_timer   > 0 ) gp_timer--;
+		#endif //USE_DHCP
+	}
 }

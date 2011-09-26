@@ -48,14 +48,15 @@
 	#define IP(a,b,c,d) ((unsigned long)(d)<<24)+((unsigned long)(c)<<16)+((unsigned long)(b)<<8)+a
 
 	//IP des Webservers und des Routers
-	#define MYIP		IP(192,168,0,99)
+	//#define MYIP		IP(192,168,0,99)
+    #define MYIP		IP(10,42,23,99)
     #define ROUTER_IP	IP(192,168,0,1)
 
 	//Netzwerkmaske
 	#define NETMASK		IP(255,255,255,0)
 	
-    //DHCP-Server
-    #define USE_DHCP    0 //1 = DHCP Client on
+	//DHCP-Server
+    #define USE_DHCP    1 //1 = DHCP Client on
   
     //DNS-Server
     #define USE_DNS     0 //1 = DNS Client on
@@ -63,7 +64,7 @@
     
 	
 	//IP des NTP-Servers z.B. Server 1.de.pool.ntp.org
-	#define USE_NTP		1 //1 = NTP Client on
+	#define USE_NTP		0 //1 = NTP Client on
 	#define NTP_IP		IP(77,37,6,59)
 	
 	//Broadcast-Adresse für WOL
@@ -73,15 +74,15 @@
 	
 	//MAC Adresse des Webservers	
 	#define MYMAC1	0x00
-	#define MYMAC2	0x20
-	#define MYMAC3	0x18
-	#define MYMAC4	0xB1	
-	#define MYMAC5	0x15
-	#define MYMAC6	0x6F
+	#define MYMAC2	0x22
+	#define MYMAC3	0xF9
+	#define MYMAC4	0x01
+	#define MYMAC5	0x38
+	#define MYMAC6	0xc8
 	
 	//Taktfrequenz
 	//#define F_CPU 20000000UL
-    #define F_CPU 16000000UL	
+    #define F_CPU 8000000UL	
 	//#define F_CPU 14745600UL
 	//#define F_CPU 11059200UL
 	

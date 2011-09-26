@@ -61,8 +61,16 @@ UDP_PORT_ITEM UDP_PORT_TABLE[MAX_APP_ENTRY];
 extern unsigned char myip[4];
 extern unsigned char netmask[4];
 extern unsigned char router_ip[4];
+extern unsigned char broadcast_ip[4];
 
 extern unsigned int IP_id_counter;
+
+#if defined (__AVR_ATmega328P__)
+	#define MAX_TCP_ENTRY 5	
+	#define MAX_UDP_ENTRY 5
+	#define MAX_ARP_ENTRY 5
+	#define MTU_SIZE 600
+#endif
 
 #if defined (__AVR_ATmega32__)
 	#define MAX_TCP_ENTRY 5	

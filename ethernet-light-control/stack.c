@@ -57,6 +57,7 @@ UDP_PORT_ITEM UDP_PORT_TABLE[MAX_APP_ENTRY] = // Port-Tabelle
 unsigned char myip[4];
 unsigned char netmask[4];
 unsigned char router_ip[4];
+unsigned char broadcast_ip[4];
 unsigned int IP_id_counter = 0;
 unsigned char eth_buffer[MTU_SIZE+1];
 
@@ -98,6 +99,9 @@ void stack_init (void)
     (*((unsigned long*)&dns_server_ip[0])) = get_eeprom_value(DNS_IP_EEPROM_STORE,DNS_IP);
     #endif
   
+	//Broadcast-Adresse berechnen
+	(*((unsigned long*)&broadcast_ip[0])) = (((*((unsigned long*)&myip[0])) & (*((unsigned long*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
+	
 	//MAC Adresse setzen
 	mymac[0] = MYMAC1;
     mymac[1] = MYMAC2;
@@ -271,12 +275,15 @@ void kill_udp_app (unsigned int port)
 
 //----------------------------------------------------------------------------
 //Interrupt von der Netzwerkkarte
+#if defined(__AVR_ATmega328P__)
+#else
 ISR (ETH_INTERRUPT)
 {
 	eth.data_present = 1;
     stack_watchdog   = 0;
 	ETH_INT_DISABLE;
 }
+#endif
 
 //----------------------------------------------------------------------------
 //ETH get data
@@ -288,7 +295,11 @@ void eth_get_data (void)
 		arp_timer_call();
 		eth.timer = 0;
 	}	
+#if defined(__AVR_ATmega328P__)
+	if(ETH_INT_ACTIVE)
+#else
 	if(eth.data_present)
+#endif
 	{
 	#if USE_ENC28J60
 		while(ETH_INT_ACTIVE)
@@ -390,7 +401,7 @@ void check_packet (void)
                 }
             }
             else
-            if (ip->IP_Destaddr == (unsigned long)0xffffffff ) // if broadcast
+            if (ip->IP_Destaddr == (unsigned long)0xffffffff || ip->IP_Destaddr == *((unsigned long*)&broadcast_ip[0]) ) // if broadcast
             {
                 if( ip->IP_Proto == PROT_UDP ) udp_socket_process();
             }

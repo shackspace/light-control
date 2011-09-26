@@ -31,7 +31,8 @@
 
 # MCU name
 
-MCU = atmega32
+#MCU = atmega32
+MCU = atmega328p
 
 #MCU = atmega644
 
@@ -170,12 +171,12 @@ LDFLAGS += -lm
 #
 
 #AVRDUDE_PROGRAMMER = AVR910
-AVRDUDE_PROGRAMMER = stk200
+AVRDUDE_PROGRAMMER = stk500v2
 #AVRDUDE_PROGRAMMER = USBasp
 
 #AVRDUDE_PORT = usb        # programmer connected to USB port
 #AVRDUDE_PORT = com1	   # programmer connected to serial device
-AVRDUDE_PORT = lpt1	       # programmer connected to parallel port
+AVRDUDE_PORT = com3	       # programmer connected to parallel port
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex $(FUSE_BITS)
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
@@ -228,7 +229,8 @@ REMOVE = rm -f
 COPY = cp
 
 HEXSIZE = $(SIZE) --target=$(FORMAT) $(TARGET).hex
-ELFSIZE = $(SIZE) -A $(TARGET).elf
+#ELFSIZE = $(SIZE) -A $(TARGET).elf
+ELFSIZE = $(SIZE) -C --mcu=$(MCU) $(TARGET).elf
 
 
 

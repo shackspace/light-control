@@ -284,7 +284,7 @@ static unsigned int enc_read_phyreg( unsigned char phyreg )
 }
 #endif
 
-static void enc_write_phyreg( unsigned char phyreg, unsigned int value )
+void enc_write_phyreg( unsigned char phyreg, unsigned int value )
 {
 	enc_write_reg( ENC_REG_MIREGADR, phyreg );
 	enc_write_reg( ENC_REG_MIWRL, LO8(value) );

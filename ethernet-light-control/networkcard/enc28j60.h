@@ -34,6 +34,20 @@
 	  atmega <-> enc connection pins, ports, interrupt
 	*************************************************************/
 
+#if defined (__AVR_ATmega328P__)
+	#define SPI_DDR                 DDRB
+	#define SPI_PORT                PORTB
+	#define SPI_SCK                 5
+	#define SPI_MISO                4
+	#define SPI_MOSI                3
+	#define SPI_SS               	2
+
+	#define ENC_DDR                 DDRB
+	#define ENC_PORT                PORTB
+	#define ENC_PIN                 PINB
+	#define ENC_CS                  2		//4 für Pollin NET I/O Board
+	#define ENC_INT                 1
+#else
 	#define SPI_DDR                 DDRB
 	#define SPI_PORT                PORTB
 	#define SPI_SCK                 7
@@ -46,12 +60,17 @@
 	#define ENC_PIN                 PINB
 	#define ENC_CS                  3		//4 für Pollin NET I/O Board
 	#define ENC_INT                 2
-
+#endif
 	#define enc_select()            ENC_PORT &= ~(1<<ENC_CS)
 	#define enc_deselect()          ENC_PORT |= (1<<ENC_CS)
 
 	#define ETH_INTERRUPT           INT2_vect
 	#define ETH_INT_ACTIVE          (!(ENC_PIN & (1<<ENC_INT)))
+
+	#if defined (__AVR_ATmega328P__)
+		#define ETH_INT_ENABLE  
+		#define ETH_INT_DISABLE
+	#endif
 
 	#if defined (__AVR_ATmega32__)
 		#define ETH_INT_ENABLE  GICR |= (1<<INT2)

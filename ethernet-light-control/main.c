@@ -43,7 +43,7 @@
 #include "camera/servo.h"
 #include "sendmail.h"
 #include <avr/eeprom.h>
-
+#include <util/delay.h>
 #include "dhcpc.h"
 #include "dnsc.h"
 
@@ -53,12 +53,11 @@ int main(void)
 {  
 	//Konfiguration der Ausgänge bzw. Eingänge
 	//definition erfolgt in der config.h
-	DDRA = OUTA;
+	//DDRA = OUTA;
 	DDRC = OUTC;
 	DDRD = OUTD;
 	
-    unsigned long a;
-	#if USE_SERVO
+ 	#if USE_SERVO
 		servo_init ();
 	#endif //USE_SERVO
 	
@@ -72,12 +71,16 @@ int main(void)
     usart_write("Compiliert am "__DATE__" um "__TIME__"\r\n");
     usart_write("Compiliert mit GCC Version "__VERSION__"\r\n");
 
-	for(a=0;a<1000000;a++){asm("nop");};
-
+	_delay_ms(1000);
+	
 	//Applikationen starten
 	stack_init();
-	httpd_init();
-	telnetd_init();
+	#if USE_HTTPD
+		httpd_init();
+	#endif   
+	#if USE_TELNETD
+		telnetd_init();
+	#endif
 	
 	//Spielerrei mit einem LCD
 	#if USE_SER_LCD
@@ -88,8 +91,11 @@ int main(void)
 	lcd_print(0,0,"System Ready");
 	#endif
 	//Ethernetcard Interrupt enable
+#if defined(__AVR_ATmega328P__)
+	//ETH_INT_ENABLE;
+#else
 	ETH_INT_ENABLE;
-	
+#endif	
 	//Globale Interrupts einschalten
 	sei(); 
 	
@@ -229,8 +235,10 @@ int main(void)
         #endif //USE_DHCP
   
 		//USART Daten für Telnetanwendung?
-		telnetd_send_data();
-        
+		#if USE_TELNETD
+			telnetd_send_data();
+        #endif
+		
         if(ping.result)
         {
             usart_write("Get PONG: %i.%i.%i.%i\r\n",ping.ip1[0],ping.ip1[1],ping.ip1[2],ping.ip1[3]); 

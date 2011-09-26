@@ -56,7 +56,19 @@
 		#define USART_RX USART0_RX_vect 
 	#endif
 	
-	#if defined (__AVR_ATmega644__) || defined (__AVR_ATmega644P__)
+	#if defined (__AVR_ATmega328P__)
+		#define USR UCSR0A
+		#define UCR UCSR0B
+		#define UDR UDR0
+		#define UBRR UBRR0L
+		#define TXEN TXEN0
+		#define RXEN RXEN0
+		#define RXCIE RXCIE0
+		#define UDRE UDRE0
+		#define FE FE0
+	#endif
+	
+	#if defined (__AVR_ATmega644__) || defined (__AVR_ATmega644P__) 
 		#define USR UCSR0A
 		#define UCR UCSR0B
 		#define UBRR UBRR0L
@@ -99,6 +111,7 @@
 	
 	void usart_write_P (const char *Buffer,...);
 	#define usart_write(format, args...)   usart_write_P(PSTR(format) , ## args)
+	//#define usart_write(...)
 	
 	//----------------------------------------------------------------------------
 
