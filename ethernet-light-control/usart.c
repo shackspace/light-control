@@ -202,7 +202,7 @@ void usart_write_str(char *str)
 #if !USE_CAM
 
 #if defined (__AVR_ATmega328P__)
-	ISR (USART_RCX)
+	ISR (USART_RX_vect)
 #else
 	ISR (USART_RX)
 #endif
