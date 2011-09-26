@@ -28,10 +28,13 @@
 		#define TIMSK TIMSK1
 	#endif 
 
+
 	volatile unsigned long time;
     volatile unsigned int  stack_watchdog;
     volatile unsigned char gp_timer;
-	void timer_init (void);
+	void timer_init(void);
+ 
+
  
 #endif //_TIMER_H
 

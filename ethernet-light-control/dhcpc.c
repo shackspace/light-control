@@ -86,6 +86,8 @@ unsigned char dhcp_state;
 
 struct dhcp_cache cache; 
 volatile unsigned long dhcp_lease;
+unsigned char dhcp_offer_ip[4];
+
 //----------------------------------------------------------------------------
 //Init of DHCP client port
 void dhcp_init (void)
@@ -93,6 +95,8 @@ void dhcp_init (void)
   //Port in Anwendungstabelle eintragen für eingehende DHCP Daten!
   add_udp_app (DHCP_CLIENT_PORT, (void(*)(unsigned char))dhcp_get);
   dhcp_state = DHCP_STATE_IDLE;
+  (*((unsigned long*)&myip[0])) = IP(0,0,0,0);
+  (*((unsigned long*)&dhcp_offer_ip[0])) = IP(10,42,3,100);
   return;
 }
 //----------------------------------------------------------------------------
@@ -147,10 +151,11 @@ unsigned char dhcp (void)
       break;
       case DHCP_STATE_ACK_RCVD:
         DHCP_DEBUG("LEASE %2x%2x%2x%2x\r\n", cache.lease[0],cache.lease[1],cache.lease[2],cache.lease[3]);
-		
-        dhcp_lease = (unsigned long)cache.lease[0] << 24 | (unsigned long)cache.lease[1] << 16 | (unsigned long)cache.lease[2] <<  8 |(unsigned long)cache.lease[3];
-
-		(*((unsigned long*)&netmask[0]))       = (*((unsigned long*)&cache.netmask[0]));
+        dhcp_lease = *((unsigned long*)&cache.lease[0]);
+        (*((unsigned long*)&myip[0]))       = (*((unsigned long*)&dhcp_offer_ip[0]));
+        (*((unsigned long*)&netmask[0]))       = (*((unsigned long*)&cache.netmask[0]));
+		//Broadcast-Adresse berechnen
+		(*((unsigned long*)&broadcast_ip[0])) = (((*((unsigned long*)&myip[0])) & (*((unsigned long*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
         (*((unsigned long*)&router_ip[0]))     = (*((unsigned long*)&cache.router_ip[0]));
 				#if USE_DNS
 				(*((unsigned long*)&dns_server_ip[0])) = (*((unsigned long*)&cache.dns1_ip[0]));
@@ -213,10 +218,10 @@ void dhcp_message (unsigned char type)
 
   *options++       = 50;    // Option 54: requested IP
   *options++       = 4;     // len = 4
-  *options++       = myip[0];
-  *options++       = myip[1];
-  *options++       = myip[2];
-  *options++       = myip[3];
+  *options++       = dhcp_offer_ip[0];
+  *options++       = dhcp_offer_ip[1];
+  *options++       = dhcp_offer_ip[2];
+  *options++       = dhcp_offer_ip[3];
 
   switch (type)
   {
@@ -240,14 +245,18 @@ void dhcp_message (unsigned char type)
   }
 
   *options++       = 12;    // Option 12: host name
-  *options++       = 8;     // len = 8
-  *options++       = 'M';
-  *options++       = 'i';
-  *options++       = 'n';
-  *options++       = 'i';
-  *options++       = '-';
+  *options++       = 12;     // len = 8
   *options++       = 'A';
   *options++       = 'V';
+  *options++       = 'R';
+  *options++       = '-';
+  *options++       = 'L';
+  *options++       = 'I';
+  *options++       = 'G';
+  *options++       = 'H';
+  *options++       = 'T';
+  *options++       = 'C';
+  *options++       = 'T';
   *options++       = 'R';
   
   *options         = 0xff;  //end option
@@ -458,12 +467,16 @@ void dhcp_get (void)
   {
     case DHCPOFFER:
       // this will be our IP address
-      (*((unsigned long*)&myip[0])) = (*((unsigned long*)&msg->yiaddr[0]));
+      (*((unsigned long*)&dhcp_offer_ip[0])) = (*((unsigned long*)&msg->yiaddr[0]));
+      //Broadcast-Adresse berechnen
+      //(*((unsigned long*)&broadcast_ip[0])) = (((*((unsigned long*)&myip[0])) & (*((unsigned long*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
       DHCP_DEBUG("** DHCP OFFER RECVD! **\r\n");
       dhcp_state = DHCP_STATE_OFFER_RCVD;
     break;
     case DHCPACK:
-      DHCP_DEBUG("** DHCP ACK RECVD! **\r\n");
+      // this will be our IP address
+      (*((unsigned long*)&dhcp_offer_ip[0])) = (*((unsigned long*)&msg->yiaddr[0]));
+	  DHCP_DEBUG("** DHCP ACK RECVD! **\r\n");
       dhcp_state = DHCP_STATE_ACK_RCVD;
     break;
     case DHCPNAK:

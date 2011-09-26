@@ -46,6 +46,7 @@
 #include <util/delay.h>
 #include "dhcpc.h"
 #include "dnsc.h"
+#include "enocean.h"
 
 //----------------------------------------------------------------------------
 //Hier startet das Hauptprogramm
@@ -81,6 +82,9 @@ int main(void)
 	#if USE_TELNETD
 		telnetd_init();
 	#endif
+	#if USE_ENOCEAN
+		enocean_init();
+	#endif
 	
 	//Spielerrei mit einem LCD
 	#if USE_SER_LCD
@@ -91,11 +95,8 @@ int main(void)
 	lcd_print(0,0,"System Ready");
 	#endif
 	//Ethernetcard Interrupt enable
-#if defined(__AVR_ATmega328P__)
-	//ETH_INT_ENABLE;
-#else
 	ETH_INT_ENABLE;
-#endif	
+
 	//Globale Interrupts einschalten
 	sei(); 
 	
@@ -111,6 +112,10 @@ int main(void)
 		lcd_print(1,0,"CAMERA READY");
 		#endif //USE_SER_LCD
 	#endif //USE_CAM
+
+    #if USE_ENOCEAN
+		enocean_netInit();
+	#endif
 
     #if USE_DHCP
     dhcp_init();
@@ -238,6 +243,10 @@ int main(void)
 		#if USE_TELNETD
 			telnetd_send_data();
         #endif
+
+		#if USE_ENOCEAN
+			enocean_main();
+		#endif
 		
         if(ping.result)
         {

@@ -35,6 +35,7 @@
 #include "timer.h"
 #include "usart.h"
 
+#if USE_HTTPD
 
 #if USE_CAM
 #include "camera/cam.h"
@@ -265,7 +266,7 @@ void httpd_header_check (unsigned char index)
 			if(*http_entry[index].post_ready_ptr == 0) 
 			{
 				http_entry[index].post = 0;
-				//PORTA = PORT_tmp;
+				PORTA = PORT_tmp;
                 PORT_tmp = 0;
 				break;
 				//Submit gefunden
@@ -506,7 +507,7 @@ void httpd_data_send (unsigned char index)
 				switch(pgm_read_byte(http_entry[index].new_page_pointer+4))
 				{
 					case 'A':
-						//b = (PORTA & (1<<pin));
+						b = (PORTA & (1<<pin));
 						break;
 					case 'B':
 						b = (PORTB & (1<<pin));
@@ -542,7 +543,7 @@ void httpd_data_send (unsigned char index)
 				switch(pgm_read_byte(http_entry[index].new_page_pointer+3))
 				{
 					case 'A':
-						//b = (PINA & (1<<pin));
+						b = (PINA & (1<<pin));
 						break;
 					case 'B':
 						b = (PINB & (1<<pin));
@@ -584,4 +585,5 @@ void httpd_data_send (unsigned char index)
 	return;
 }
 
+#endif // USE_HTTPD
 

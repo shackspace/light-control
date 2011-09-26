@@ -136,6 +136,8 @@ void command_ip (void)
 {
 	write_eeprom_ip(IP_EEPROM_STORE);
 	(*((unsigned long*)&myip[0])) = get_eeprom_value(IP_EEPROM_STORE,MYIP);
+	//Broadcast-Adresse berechnen
+	(*((unsigned long*)&broadcast_ip[0])) = (((*((unsigned long*)&myip[0])) & (*((unsigned long*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
 	usart_write("My IP: %1i.%1i.%1i.%1i\r\n",myip[0],myip[1],myip[2],myip[3]);
 }
 
@@ -171,6 +173,8 @@ void command_net (void)
 {
 	write_eeprom_ip(NETMASK_EEPROM_STORE);
 	(*((unsigned long*)&netmask[0])) = get_eeprom_value(NETMASK_EEPROM_STORE,NETMASK);
+	//Broadcast-Adresse berechnen
+	(*((unsigned long*)&broadcast_ip[0])) = (((*((unsigned long*)&myip[0])) & (*((unsigned long*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
 	usart_write("NETMASK: %1i.%1i.%1i.%1i\r\n",netmask[0],netmask[1],netmask[2],netmask[3]);
 }
 
@@ -245,18 +249,18 @@ void command_tcp (void)
 //ändern einer Variable
 void command_setvar (void)
 {
-	var_array[variable[0]] = variable[1];
-	usart_write("Inhalt der Variable[%2i] = %2i\r\n",variable[0],var_array[variable[0]]);
+//	var_array[variable[0]] = variable[1];
+//	usart_write("Inhalt der Variable[%2i] = %2i\r\n",variable[0],var_array[variable[0]]);
 }
 
 //------------------------------------------------------------------------------
 //print Time
 void command_time (void)
 {
-	unsigned char hh = (time/3600)%24;
-	unsigned char mm = (time/60)%60;
-	unsigned char ss = time %60;
-	usart_write ("\n\rTIME: %2i:%2i:%2i\r\n",hh,mm,ss);
+//	unsigned char hh = (time/3600)%24;
+//	unsigned char mm = (time/60)%60;
+//	unsigned char ss = time %60;
+//	usart_write ("\n\rTIME: %2i:%2i:%2i\r\n",hh,mm,ss);
 }
 
 //------------------------------------------------------------------------------
@@ -373,6 +377,7 @@ void read_ip_addresses (void)
   (*((unsigned long*)&myip[0]))      = get_eeprom_value(IP_EEPROM_STORE,MYIP);
   (*((unsigned long*)&netmask[0]))   = get_eeprom_value(NETMASK_EEPROM_STORE,NETMASK);
   (*((unsigned long*)&router_ip[0])) = get_eeprom_value(ROUTER_IP_EEPROM_STORE,ROUTER_IP);
+  (*((unsigned long*)&broadcast_ip[0])) = (((*((unsigned long*)&myip[0])) & (*((unsigned long*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
 	
 	#if USE_DNS
 	//DNS-Server IP aus EEPROM auslesen

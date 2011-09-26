@@ -32,8 +32,18 @@
 #include "dhcpc.h"
 #include "timer.h"
 
+#if USE_ENOCEAN
+	#include "enocean.h"
+#endif //USE_ENOCEAN
+
 volatile unsigned long time;
 volatile unsigned long time_watchdog = 0;
+
+volatile uint8_t key_state = 0;                                // debounced and inverted key state:
+volatile uint8_t key_press = 0;                                // key press detect
+
+
+
 
 //----------------------------------------------------------------------------
 //Diese Routine startet und inizialisiert den Timer
@@ -78,6 +88,9 @@ void timer_init (void)
 return;
 };
 
+
+
+
 //----------------------------------------------------------------------------
 //Timer Interrupt
 #if EXTCLOCK==1
@@ -95,6 +108,20 @@ return;
 	if(!prescaler_10ms--)
 	{
 		prescaler_10ms = 1;
+
+
+		static uint8_t ct0, ct1;
+		uint8_t i;
+		 
+		 
+		i = key_state ^ ~PINC;                            // key changed ?
+		ct0 = ~( ct0 & i );                             // reset or count ct0
+		ct1 = ct0 ^ (ct1 & i);                          // reset or count ct1
+		i &= ct0 & ct1;                                 // count until roll over ?
+		key_state ^= i;                                 // then toggle debounced state
+		key_press |= key_state & i;                     // 0->1: key press detect
+
+
 	}
 
 	static uint16_t    prescaler_s = 200;
@@ -112,6 +139,10 @@ return;
 		#if USE_NTP
 		ntp_timer--;
 		#endif //USE_NTP
+		#if USE_ENOCEAN
+			enocean_tick();
+		#endif //USE_ENOCEAN
+
 		#if USE_DHCP
 		if ( dhcp_lease > 0 ) dhcp_lease--;
 		if ( gp_timer   > 0 ) gp_timer--;

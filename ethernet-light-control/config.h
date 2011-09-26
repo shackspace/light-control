@@ -33,7 +33,7 @@
 	//Konfiguration der PORTS (HEX)
 	//1=OUTPUT / 0=INPUT
 	#define OUTA 		0x07
-	#define OUTC 		0x06
+	#define OUTC 		0x00
 	#define OUTD 		0x00
 	//Achtung!!!! an PORTB ist der ENC
 	//nur ‰ndern wenn man weiﬂ was man macht!
@@ -56,7 +56,10 @@
 	#define NETMASK		IP(255,255,255,0)
 	
 	//DHCP-Server
-    #define USE_DHCP    1 //1 = DHCP Client on
+    #define USE_DHCP    0 //1 = DHCP Client on
+	
+	//ENOCEAN
+	#define USE_ENOCEAN 1
   
     //DNS-Server
     #define USE_DNS     0 //1 = DNS Client on
