@@ -142,7 +142,10 @@ void enocean_main(void) {
 		{
 			PORTD |= _BV(4+i/2);
 		} else {
-			PORTD &= ~_BV(4+i/2);
+			if (i%2==0)
+			{
+				PORTD &= ~_BV(4+i/2);
+			}
 		}
 	
 	}
@@ -202,7 +205,10 @@ void enocean_main(void) {
 			if (hauptschalter_status == OFF_WAIT)
 			{
 
-				if (blinker) PORTD |= _BV(PD3); else PORTD &= ~_BV(PD3);
+				if (blinker)
+					PORTD |= _BV(PD3);
+				else
+					PORTD &= ~_BV(PD3);
 				
 				if (blinker_cnt > 10)
 				{
@@ -281,7 +287,7 @@ void enocean_tick(void) {
 	if (!counter--)
 	{
 		blinker ^= 1;
-		counter=1;
+		counter=0;
 		blinker_cnt++;
 	}
 }
