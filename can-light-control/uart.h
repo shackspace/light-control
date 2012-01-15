@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------------------
  Copyright:      Ulrich Escher  mailto: code@myvdr.de
- Author:         Ulrich Escher
+ Author:         Ulrich Escher, Georg-Johann Lay(http://www.gjlay.de/pub/index.html)
  Remarks:        
  known Problems: none
  Version:        13.01.2012
