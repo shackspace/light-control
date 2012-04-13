@@ -3,131 +3,68 @@
  Author:         Ulrich Escher
  Remarks:        
  known Problems: none
- Version:        13.01.2012
- Description:    enocean Headerfile
+ Version:        13.01.2012 initial
+                 13.04.2012 upgrade Channels
+ Description:    enocean
 
  implement enocean
 
 ------------------------------------------------------------------------------*/
 
-#include "enocean.h"
 
-#ifdef USE_ENOCEAN
+#if USE_ENOCEAN
 
 #include <stdio.h>
 #include <avr/interrupt.h>
 
+#include "enocean.h"
 #include "hmi.h"
 
-uint8_t licht_status[8];
-
-enum hauptschalter_states {INIT, OFF, ON, OFF_WAIT};
-enum hauptschalter_states hauptschalter_status;
-
-uint8_t blinker;
-uint8_t blinker_cnt;
+uint8_t enocean_channel_state[ENOCEAN_CHANNEL_COUNT];
 
 
 // ----------------------------------------------------------------------------
 // initialization of enocean environment
 void enocean_init(void) {
 
-	for (uint8_t i = 0; i < 10; i++)
+	for (uint8_t i = 0; i < ENOCEAN_CHANNEL_COUNT; i++)
 	{
-		licht_status[i] = 0;
+		enocean_channel_state[i] = 0;
 
-		licht_status[i] = eeprom_read_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i);	
+		enocean_channel_state[i] = eeprom_read_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i);	
 
-		if (licht_status[i] == 0xFF)
+		if (enocean_channel_state[i] == 0xFF)
 		{
-			licht_status[i] = 0;
+			enocean_channel_state[i] = 0;
 		}
 
-		licht_status[i] |= ENOCEAN_CHANNEL_ACT;
+		enocean_channel_state[i] |= ENOCEAN_CHANNEL_ACT;
 	}
-
-	hauptschalter_status = INIT;
 
 
  return;
 }
 
 
-
-
-
+// ----------------------------------------------------------------------------
+// enocean_main function wird von while(1) aufgerufen
 void enocean_main(void) {
 
+	for (uint8_t i = 0; i < ENOCEAN_CHANNEL_COUNT; i++) {
 
-	for (uint8_t i = 0; i < 10; i++) {
-
-		if (licht_status[i] & ENOCEAN_CHANNEL_ACT)
+		if (enocean_channel_state[i] & ENOCEAN_CHANNEL_ACT)
 		{
-			licht_status[i] &= ~ENOCEAN_CHANNEL_ACT;
-			enocean_packet_send(100+i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
+			enocean_channel_state[i] &= ~ENOCEAN_CHANNEL_ACT;
+			enocean_packet_send(ENOCEAN_CHANNEL_OFFSET+i,enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);	
 		}
 
-
-		if (licht_status[i] & ENOCEAN_CHANNEL_EEPROM)
+		if (enocean_channel_state[i] & ENOCEAN_CHANNEL_EEPROM)
 		{
-			licht_status[i] &= ~ENOCEAN_CHANNEL_EEPROM;
-		    eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
+			enocean_channel_state[i] &= ~ENOCEAN_CHANNEL_EEPROM;
+		    eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);	
 		}
-
 	
 	}
-
-	
-
-
-
-	{
-		if (key_state & _BV(7))		//Abfrage des Hauptschalters true = EIN
-		{	
-			//Hauptschalter ein
-			if (hauptschalter_status == INIT || hauptschalter_status == OFF || hauptschalter_status == OFF_WAIT)
-			{
-				led_set(99,1);
-				enocean_packet_send(110,1);	
-				hauptschalter_status = ON;
-			}
-		} else {
-			//Hauptschalter aus
-			if (hauptschalter_status == INIT)
-			{
-				led_set(99,0);
-				enocean_packet_send(110,0);	
-				hauptschalter_status = OFF;
-			}
-			
-			if (hauptschalter_status == ON)
-			{
-				blinker_cnt = 0;
-				hauptschalter_status = OFF_WAIT;
-			}
-
-			if (hauptschalter_status == OFF_WAIT)
-			{
-
-				if (blinker)
-					led_set(99,1);
-				else
-					led_set(99,0);
-				
-				if (blinker_cnt > 5)
-				{
-					led_set(99,0);
-					enocean_packet_send(110,0);	
-					hauptschalter_status = OFF;
-				}
-			}
-
-
-
-		}
-	}
-
-
 	
 }
 
@@ -136,37 +73,47 @@ void enocean_main(void) {
 // enocen set function
 void enocean_state_set(uint8_t channel, uint8_t state) {
 		
-		if (channel >= 100) channel -= 100;
-		if (state==0x50) state = 0;		
-		if (state==0x70) state = 1;		
-		if ((channel) < 8 && state <= 1)
-		{
-			licht_status[channel] |= ENOCEAN_CHANNEL_ACT | ENOCEAN_CHANNEL_EEPROM;
+  if (channel >= ENOCEAN_CHANNEL_OFFSET) channel -= ENOCEAN_CHANNEL_OFFSET;	
+  if ((channel) < ENOCEAN_CHANNEL_COUNT)
+  {
+    if (state==0x50) state = 0;		
+    if (state==0x70) state = 1;		
+    
+    if (state <= 1)
+    {
+      enocean_channel_state[channel] |= ENOCEAN_CHANNEL_ACT | ENOCEAN_CHANNEL_EEPROM;
 			if (state==0)
-				licht_status[channel] &= ~ENOCEAN_CHANNEL_STATUS;
+				enocean_channel_state[channel] &= ~ENOCEAN_CHANNEL_STATUS;
 			else	
-				licht_status[channel] |= ENOCEAN_CHANNEL_STATUS;
-		}
-
-		if (channel == 99)
-			led_set(99,state);
+				enocean_channel_state[channel] |= ENOCEAN_CHANNEL_STATUS;
+    }
+    if (state & 0x80)
+    {
+      uint8_t mask = (state&0x70)>>4;
+      uint8_t bits = (state&0x07);
+      enocean_channel_state[channel] = (enocean_channel_state[channel] & ~mask) | ( mask & bits );
+	}
+  }
+  if (channel == 99)
+	led_set(99,state);
 
 }
 
+
+// ----------------------------------------------------------------------------
+// enocen get function
+uint8_t enocean_state_get(uint8_t channel) {
+  if ( enocean_channel_state[channel] & ENOCEAN_CHANNEL_STATUS )
+    return 1;
+  else
+    return 0;
+}
 
 
 // ----------------------------------------------------------------------------
 // Called by timer, check changes
 void enocean_tick(void) {
 
-	static uint8_t counter = 1;
-	
-	if (!counter--)
-	{
-		blinker ^= 1;
-		counter=0;
-		blinker_cnt++;
-	}
 }
 
 
@@ -174,6 +121,7 @@ void enocean_tick(void) {
 // create a enocean telegram and send over uart
 void enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
+	//_delay_ms(20);	
 	uint8_t packet_tmp[14] = {0xa5, 0x5a, 0x0b, 0x05, 
 		((cmd+2) << 5 | 16),
 		0, 0, 0, 0, 0, 0,
