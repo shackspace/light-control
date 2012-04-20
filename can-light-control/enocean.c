@@ -11,11 +11,13 @@
 
 ------------------------------------------------------------------------------*/
 
+#include "config.h"
 
 #if USE_ENOCEAN
 
 #include <stdio.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
 #include "enocean.h"
 #include "hmi.h"
@@ -61,7 +63,7 @@ void enocean_main(void) {
 		if (enocean_channel_state[i] & ENOCEAN_CHANNEL_EEPROM)
 		{
 			enocean_channel_state[i] &= ~ENOCEAN_CHANNEL_EEPROM;
-		    eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);	
+			eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);	
 		}
 	
 	}
@@ -76,9 +78,6 @@ void enocean_state_set(uint8_t channel, uint8_t state) {
   if (channel >= ENOCEAN_CHANNEL_OFFSET) channel -= ENOCEAN_CHANNEL_OFFSET;	
   if ((channel) < ENOCEAN_CHANNEL_COUNT)
   {
-    if (state==0x50) state = 0;		
-    if (state==0x70) state = 1;		
-    
     if (state <= 1)
     {
       enocean_channel_state[channel] |= ENOCEAN_CHANNEL_ACT | ENOCEAN_CHANNEL_EEPROM;
@@ -116,12 +115,11 @@ void enocean_tick(void) {
 
 }
 
-
 // ----------------------------------------------------------------------------
 // create a enocean telegram and send over uart
 void enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
-	//_delay_ms(20);	
+	_delay_ms(20);
 	uint8_t packet_tmp[14] = {0xa5, 0x5a, 0x0b, 0x05, 
 		((cmd+2) << 5 | 16),
 		0, 0, 0, 0, 0, 0,
