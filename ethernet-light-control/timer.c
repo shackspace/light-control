@@ -35,6 +35,9 @@
 #if USE_ENOCEAN
 	#include "enocean.h"
 #endif //USE_ENOCEAN
+#if USE_CAN2UDP
+	#include "can2udp.h"
+#endif //USE_CAN2UDP
 
 volatile unsigned long time;
 volatile unsigned long time_watchdog = 0;
@@ -104,6 +107,8 @@ return;
 #endif
 {
 
+
+
 	static uint16_t    prescaler_10ms = 2;
 	if(!prescaler_10ms--)
 	{
@@ -121,6 +126,9 @@ return;
 		key_state ^= i;                                 // then toggle debounced state
 		key_press |= key_state & i;                     // 0->1: key press detect
 
+		#if USE_CAN2UDP
+			can2udp_tick_10ms();
+		#endif //USE_CAN2UDP
 
 	}
 
@@ -142,6 +150,9 @@ return;
 		#if USE_ENOCEAN
 			enocean_tick();
 		#endif //USE_ENOCEAN
+		#if USE_CAN2UDP
+			can2udp_tick();
+		#endif //USE_CAN2UDP
 
 		#if USE_DHCP
 		if ( dhcp_lease > 0 ) dhcp_lease--;

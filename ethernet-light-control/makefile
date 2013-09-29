@@ -89,7 +89,9 @@ SRC += camera/cam.c camera/servo.c
 
 SRC += dnsc.c dhcpc.c
 
-SRC += enocean.c
+SRC += enocean.c can2udp.c shackbus.c fifo.c canframestorage.c
+
+SRC += mem-check.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -160,6 +162,7 @@ LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 # -lm = math library
 LDFLAGS += -lm
 
+LDFLAGS += -L. -lcan        # hinzufügen
 
 
 
@@ -178,7 +181,7 @@ AVRDUDE_PROGRAMMER = stk500v2
 
 #AVRDUDE_PORT = usb        # programmer connected to USB port
 #AVRDUDE_PORT = com1	   # programmer connected to serial device
-AVRDUDE_PORT = com3	       # programmer connected to parallel port
+AVRDUDE_PORT = /dev/ttyUSB0	       # programmer connected to parallel port
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex $(FUSE_BITS)
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
@@ -271,7 +274,7 @@ ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
 # Default target.
-all: begin gccversion sizebefore $(TARGET).elf $(TARGET).hex $(TARGET).eep \
+all: begin gccversion sizebefore compile_libcan $(TARGET).elf $(TARGET).hex $(TARGET).eep \
 	$(TARGET).lss $(TARGET).sym sizeafter finished end
 
 
@@ -281,6 +284,9 @@ all: begin gccversion sizebefore $(TARGET).elf $(TARGET).hex $(TARGET).eep \
 begin:
 	@echo
 	@echo $(MSG_BEGIN)
+
+compile_libcan:
+	$(MAKE) -C code/src/
 
 finished:
 	@echo $(MSG_ERRORS_NONE)
@@ -365,7 +371,7 @@ program: $(TARGET).hex $(TARGET).eep
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
 .PRECIOUS : $(OBJ)
-%.elf: $(OBJ)
+%.elf: $(OBJ) libcan.a
 	@echo
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)

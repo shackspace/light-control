@@ -92,11 +92,12 @@ unsigned char dhcp_offer_ip[4];
 //Init of DHCP client port
 void dhcp_init (void)
 {
+  DHCP_DEBUG("\r\nIP   %1i.%1i.%1i.%1i\r\n", myip[0]     , myip[1]     , myip[2]     , myip[3]);
   //Port in Anwendungstabelle eintragen für eingehende DHCP Daten!
   add_udp_app (DHCP_CLIENT_PORT, (void(*)(unsigned char))dhcp_get);
   dhcp_state = DHCP_STATE_IDLE;
   (*((unsigned long*)&myip[0])) = IP(0,0,0,0);
-  (*((unsigned long*)&dhcp_offer_ip[0])) = IP(10,42,3,100);
+  (*((unsigned long*)&dhcp_offer_ip[0])) = IP(10,42,23,99);
   return;
 }
 //----------------------------------------------------------------------------
@@ -151,7 +152,12 @@ unsigned char dhcp (void)
       break;
       case DHCP_STATE_ACK_RCVD:
         DHCP_DEBUG("LEASE %2x%2x%2x%2x\r\n", cache.lease[0],cache.lease[1],cache.lease[2],cache.lease[3]);
-        dhcp_lease = *((unsigned long*)&cache.lease[0]);
+        //dhcp_lease = *((uint32_t*)&cache.lease[3]);
+
+        //dhcp_lease = 28800;
+        dhcp_lease = (uint32_t)(cache.lease[0]<<24)+(uint32_t)(cache.lease[1]<<16)+(uint32_t)(cache.lease[2]<<8)+(uint32_t)(cache.lease[3]);
+
+
         (*((unsigned long*)&myip[0]))       = (*((unsigned long*)&dhcp_offer_ip[0]));
         (*((unsigned long*)&netmask[0]))       = (*((unsigned long*)&cache.netmask[0]));
 		//Broadcast-Adresse berechnen
@@ -262,6 +268,8 @@ void dhcp_message (unsigned char type)
   *options         = 0xff;  //end option
 
   create_new_udp_packet(sizeof (struct dhcp_msg),DHCP_CLIENT_PORT,DHCP_SERVER_PORT,(unsigned long)0xffffffff);
+  DHCP_DEBUG("\r\nmyip   %1i.%1i.%1i.%1i\r\n", myip[0]     , myip[1]     , myip[2]     , myip[3]);
+  DHCP_DEBUG("\r\nofferip   %1i.%1i.%1i.%1i\r\n", dhcp_offer_ip[0] , dhcp_offer_ip[1] , dhcp_offer_ip[2] , dhcp_offer_ip[3]);
 }
 //----------------------------------------------------------------------------
 //liest 4 bytes aus einem buffer und speichert in dem anderen

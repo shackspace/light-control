@@ -30,7 +30,11 @@
 
 #include "networkcard/enc28j60.h"
 
+#include "can.h"
 
+#include "shackbus.h"
+
+#include "can2udp.h"
 
 // ----------------------------------------------------------------------------
 // default values
@@ -42,7 +46,7 @@ unsigned short enocean_port = PORT_DEFAULT;
 
 
 
-uint8_t licht_status[8];
+uint8_t licht_status[12];
 #define ENOCEAN_CHANNEL_STATUS	1
 #define ENOCEAN_CHANNEL_ACT		2
 
@@ -53,7 +57,7 @@ enum hauptschalter_states hauptschalter_status;
 uint8_t blinker;
 uint8_t blinker_cnt;
 
-
+uint32_t remote_ip = IP(0,0,0,0);
 
 
 // ----------------------------------------------------------------------------
@@ -62,12 +66,21 @@ void enocean_netInit(void) {
 
 
  // calculate broadcast adress
- (*((unsigned long*)&broadcast_ip[0])) = (((*((unsigned long*)&myip[0])) & (*((unsigned long*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
+ *((uint32_t*)broadcast_ip) = (((*((unsigned long*)myip)) & (*((uint32_t*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
 
  // remove any existing app from port
  kill_udp_app(enocean_port);
  // add port to stack with callback
  add_udp_app(enocean_port, (void(*)(unsigned char))enocean_get);
+
+// remote_ip = IP(10,42,3,176);
+ remote_ip = IP(10,42,0,111);
+// remote_ip = IP(192,168,2,100);
+
+// remote_ip = IP(192,168,2,100);
+
+
+
 }
 
 
@@ -83,13 +96,14 @@ void enocean_init(void) {
   enocean_port = PORT_DEFAULT;
  }
 
+
 	DDRD  |= 0xF8;	//PD4-PD7 = LEDs  PD3 = Hauptschalter LED
 	PORTD &= 0x07;
 
 	DDRC  &= 0xE0;	//PC0-3 = Tastereingänge  PC4 = Hauptschalter
 	PORTC |= 0x1F;
 
-	for (uint8_t i = 0; i < 8; i++)
+	for (uint8_t i = 0; i < 12; i++)
 	{
 		licht_status[i] = 0;
 
@@ -100,34 +114,123 @@ void enocean_init(void) {
 			licht_status[i] = 0;
 		}
 
-		licht_status[i] |= ENOCEAN_CHANNEL_ACT;
+//		licht_status[i] |= ENOCEAN_CHANNEL_ACT;
 	}
 
 	hauptschalter_status = INIT;
+
+
 
 
  return;
 }
 
 
-
 void send_test_msg(uint8_t addr, uint8_t cmd)
 {
 
-	eth_buffer[UDP_DATA_START+0]=addr;
-	eth_buffer[UDP_DATA_START+1]=cmd;
+	if (addr >= 0 && addr < 12)
+	{
+		eth_buffer[UDP_DATA_START+0]=addr+20;
+		eth_buffer[UDP_DATA_START+1]=cmd;
 
-	create_new_udp_packet(2, 2342, 2342, (unsigned long)0xffffffff);
-	
+		create_new_udp_packet(2, 2342, 2342, remote_ip);
+	}
+
+
+	if (addr >= 0 && addr <= 10)
+	{
+		if (addr == 0) addr = 0;
+		else if (addr == 1) addr = 0;
+		else if (addr == 2) addr = 1;
+		else if (addr == 3) addr = 1;
+		else if (addr == 4) addr = 2;
+		else if (addr == 5) addr = 3;
+		else if (addr == 6) addr = 4;
+		else if (addr == 7) addr = 4;
+		else if (addr == 8) addr = 5;
+		else if (addr == 9) addr = 6;
+		else if (addr == 10) addr = 7;
+
+		eth_buffer[UDP_DATA_START+0]=addr;
+		eth_buffer[UDP_DATA_START+1]=cmd;
+
+		create_new_udp_packet(2, 2342, 2342, 0xffffffff);
+	}	
+
+	if (addr == 120)
+	{
+		addr = 10;
+
+		eth_buffer[UDP_DATA_START+0]=addr;
+		eth_buffer[UDP_DATA_START+1]=cmd;
+
+		create_new_udp_packet(2, 2342, 2342, 0xffffffff);
+		create_new_udp_packet(2, 2342, 2342, remote_ip);
+	}	
+
+
 	return;
 }
 
 
 
 
+void shackbus_main(void)
+{
+	// Check if a new messag was received
+	if (can_check_message())
+	{
+		can_t msg;
+		
+		// Try to read the message
+		if (can_get_message(&msg))
+		{
+
+          shackbus_id_t shackbus_id;
+          shackbus_id2sb(&shackbus_id,msg);
+
+
+
+			can2udp(&msg); //msg an udp weiterleiten
+
+			//Wenn der Event über Can kommt dann per udp weiterleiten / brodcasten
+			send_test_msg(msg.data[0], msg.data[1]);
+
+        }
+    }
+
+	if (blinker)
+	{
+		blinker = 0;		
+		can_error_register_t aktuelle_fehler = can_read_error_register();
+
+		can_t msg;
+		msg.flags.extended = 1;
+		msg.length = 2;
+		msg.data[0]=aktuelle_fehler.rx;
+		msg.data[1]=aktuelle_fehler.tx;
+
+		shackbus_id_t sb;
+		sb.prio = 255;
+		sb.vlan = 255;
+		sb.src = 255;
+		sb.dst = 255;
+		sb.prot = 255;
+
+		msg.id = shackbus_sb2id(&sb);
+
+//		can2udp(&msg);
+
+	}
+}
+
+
 void enocean_main(void) {
 
-	for (uint8_t i = 0; i < 8; i++) {
+    shackbus_main();
+
+	for (uint8_t i = 0; i < 12; i++) {
 
 		if (licht_status[i] & ENOCEAN_CHANNEL_ACT)
 		{
@@ -135,117 +238,22 @@ void enocean_main(void) {
 			enocean_packet_send(100+i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
 
 		    eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
-			send_test_msg(i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);
-		}
-
-		if (licht_status[i] & ENOCEAN_CHANNEL_STATUS)
-		{
-			PORTD |= _BV(4+i/2);
-		} else {
-			if (i%2==0)
-			{
-				PORTD &= ~_BV(4+i/2);
-			}
 		}
 	
 	}
 
-	
-
-
-	for (uint8_t i = 0; i < 4; i++)
-	{
-		if ( key_press & _BV(i) )
-		{
-			key_press ^= _BV(i);
-			
-			licht_status[i*2] |= ENOCEAN_CHANNEL_ACT;
-			licht_status[i*2+1] |= ENOCEAN_CHANNEL_ACT;
-
-
-			if ( (licht_status[i*2] & ENOCEAN_CHANNEL_STATUS) || (licht_status[i*2+1] & ENOCEAN_CHANNEL_STATUS))
-			{
-				licht_status[i*2] &= ~(ENOCEAN_CHANNEL_STATUS);
-				licht_status[i*2+1] &= ~(ENOCEAN_CHANNEL_STATUS);
-			} else {
-				licht_status[i*2]   |= ENOCEAN_CHANNEL_STATUS;
-				licht_status[i*2+1] |= ENOCEAN_CHANNEL_STATUS;
-			}
-		}
-	}
-
-	{
-		if (key_state & _BV(4))		//Abfrage des Hauptschalters true = EIN
-		{	
-			//Hauptschalter ein
-			if (hauptschalter_status == INIT || hauptschalter_status == OFF || hauptschalter_status == OFF_WAIT)
-			{
-				PORTD |= _BV(PD3);
-				enocean_packet_send(110,1);	
-				send_test_msg(10,1);
-				hauptschalter_status = ON;
-			}
-		} else {
-			//Hauptschalter aus
-			if (hauptschalter_status == INIT)
-			{
-				PORTD &= ~_BV(PD3);
-				enocean_packet_send(110,0);	
-				send_test_msg(10,0);
-				hauptschalter_status = OFF;
-			}
-			
-			if (hauptschalter_status == ON)
-			{
-				blinker_cnt = 0;
-				send_test_msg(10,2);
-				hauptschalter_status = OFF_WAIT;
-			}
-
-			if (hauptschalter_status == OFF_WAIT)
-			{
-
-				if (blinker)
-					PORTD |= _BV(PD3);
-				else
-					PORTD &= ~_BV(PD3);
-				
-				if (blinker_cnt > 10)
-				{
-					PORTD &= ~_BV(PD3);
-					enocean_packet_send(110,0);	
-					send_test_msg(10,0);
-					hauptschalter_status = OFF;
-				}
-			}
-
-
-
-		}
-	}
-
-
-
-
-
-		/*if ( key_press & _BV(4) )
-		{
-			key_press ^= _BV(4);
-			
-			if ( licht_status[i*2] || licht_status[i*2+1])
-			{
-				enocean_packet_send(100+i*2, 0 );
-				enocean_packet_send(101+i*2, 0 );
-			} else {
-				enocean_packet_send(100+i*2, 1 );
-				enocean_packet_send(101+i*2, 1 );
-			}
-		}
-*/
-
-	
 }
 
+
+
+void change_light_state(uint8_t addr, uint8_t state)
+{
+			licht_status[addr] |= ENOCEAN_CHANNEL_ACT;
+			if (state==0)
+				licht_status[addr] &= ~ENOCEAN_CHANNEL_STATUS;
+			else	
+				licht_status[addr] |= ENOCEAN_CHANNEL_STATUS;
+}
 
 
 // ----------------------------------------------------------------------------
@@ -258,19 +266,35 @@ void enocean_get(unsigned char index) {
 		uint8_t addr   = eth_buffer[UDP_DATA_START+2];
 		uint8_t status = eth_buffer[UDP_DATA_START+3];
 		
-		if ((addr) < 8 && status <= 1)
+		if ((addr) < 12 && status <= 1)
 		{
-			licht_status[addr] |= ENOCEAN_CHANNEL_ACT;
-			if (status==0)
-				licht_status[addr] &= ~ENOCEAN_CHANNEL_STATUS;
-			else	
-				licht_status[addr] |= ENOCEAN_CHANNEL_STATUS;
+			if (addr == 0) change_light_state(0,status);
+			if (addr == 0) change_light_state(1,status);
+			if (addr == 1) change_light_state(2,status);
+			if (addr == 1) change_light_state(3,status);
+			if (addr == 2) change_light_state(4,status);
+			if (addr == 3) change_light_state(5,status);
+			if (addr == 4) change_light_state(6,status);
+			if (addr == 4) change_light_state(7,status);
+			if (addr == 5) change_light_state(8,status);
+			if (addr == 6) change_light_state(9,status);
+			if (addr == 7) change_light_state(10,status);
+		}
+		if ((addr) >= 20 && (addr) <= 30 && status <= 1)
+		{
+			if (addr == 20) change_light_state(0,status);
+			if (addr == 21) change_light_state(1,status);
+			if (addr == 22) change_light_state(2,status);
+			if (addr == 23) change_light_state(3,status);
+			if (addr == 24) change_light_state(4,status);
+			if (addr == 25) change_light_state(5,status);
+			if (addr == 26) change_light_state(6,status);
+			if (addr == 27) change_light_state(7,status);
+			if (addr == 28) change_light_state(8,status);
+			if (addr == 29) change_light_state(9,status);
+			if (addr == 30) change_light_state(10,status);
 		}
 
-		if ((addr) == 99 && status == 1)
-			PORTD |= _BV(PD3);
-		if ((addr) == 99 && status == 0)
-			PORTD ^= _BV(PD3);
 
 	} else {
 	//	enocean_packet_send(100+eth_buffer[UDP_DATA_START]-'0', eth_buffer[UDP_DATA_START+1]-'0' );
@@ -290,6 +314,49 @@ void enocean_tick(void) {
 		counter=0;
 		blinker_cnt++;
 	}
+
+
+
+	static uint8_t arp_in_request = 0;
+	if (arp_in_request) arp_in_request--;
+	uint8_t entr_i = arp_entry_search(remote_ip);
+	if (*(uint32_t*)myip && remote_ip)
+	{
+		if ( (entr_i == MAX_ARP_ENTRY || arp_entry[entr_i].arp_t_time < 10) && arp_in_request == 0 )
+		{
+			arp_in_request = 60;
+			arp_request(remote_ip);
+		}
+	}
+
+can_t msg;
+msg.id = 0x12345678;
+msg.flags.extended = 1;
+msg.length = 8;
+msg.data[0]=0x01;
+msg.data[1]=0x23;
+msg.data[2]=0x45;
+msg.data[3]=0x67;
+msg.data[4]=0x89;
+msg.data[5]=0xAB;
+msg.data[6]=0xCD;
+msg.data[7]=0xEF;
+
+
+//can2udp(&msg);
+
+shackbus_id_t sb;
+sb.prio = 255;
+sb.vlan = 255;
+sb.src = 255;
+sb.dst = 255;
+sb.prot = 255;
+
+msg.id = shackbus_sb2id(&sb);
+
+//can2udp(&msg);
+
+
 }
 
 
@@ -308,7 +375,34 @@ void enocean_packet_send(uint8_t addr, uint8_t cmd)
 	for (uint8_t i = 0; i < 14; i++) {
 		usart_write_char(packet_tmp[i]);
 	}
+
+
+
+	// Create a test messsage
+	can_t send_msg_blink;
+
+/*3bit prio
+4bit vlan = 4
+8bit src  = 5
+8bit dst = 6
+6bit prot = 9
+*///	send_msg_blink.id = 0x00020109;  //Absender = 2   Empfänger = 1
+	send_msg_blink.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+9L);  //Absender = 2   Empfänger = 1
+	send_msg_blink.flags.rtr = 0;
+
+	send_msg_blink.flags.extended = 1;
+
+	send_msg_blink.length  = 3;
+
+
+			send_msg_blink.data[1] = cmd;
+			send_msg_blink.data[0] = addr-100;
+			can_send_message(&send_msg_blink);
+			can2udp(&send_msg_blink);
+
 }
+
+
 
 
 

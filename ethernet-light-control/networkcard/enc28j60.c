@@ -127,7 +127,7 @@ static unsigned char enc_configdata[] PROGMEM = {
 
 	// leds: leda (yellow) rx and tx activity, stretch to 40ms
 	//       ledb (green)  link status
-	#define ENC_REG_PHCON_VALUE (0x0000 | (1 << ENC_BIT_STRCH) \
+	#define ENC_REG_PHCON_VALUE (0x0000 | (0 << ENC_BIT_STRCH) \
 			     | (7 << ENC_BIT_LACFG0)               \
 			     | (4 << ENC_BIT_LBCFG0))
 	ENC_REG_PHLCON, HI8(ENC_REG_PHCON_VALUE), LO8(ENC_REG_PHCON_VALUE),

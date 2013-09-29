@@ -26,14 +26,14 @@
 #ifndef _DHCPCLIENT_H
 	#define _DHCPCLIENT_H
 
-	//#define DHCP_DEBUG usart_write
-	#define DHCP_DEBUG(...)
+	#define DHCP_DEBUG usart_write
+	//#define DHCP_DEBUG(...)
 
 	#define DHCP_CLIENT_PORT		  68
 	#define DHCP_SERVER_PORT		  67
 
 
-volatile unsigned long dhcp_lease;
+volatile uint32_t dhcp_lease;
 volatile unsigned char dhcp_timer;
 
 extern void dhcp_init     (void);

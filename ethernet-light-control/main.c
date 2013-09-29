@@ -47,15 +47,18 @@
 #include "dhcpc.h"
 #include "dnsc.h"
 #include "enocean.h"
+#include "can.h"
+#include "can2udp.h"
 
 //----------------------------------------------------------------------------
 //Hier startet das Hauptprogramm
 int main(void)
 {  
+
 	//Konfiguration der Ausgänge bzw. Eingänge
 	//definition erfolgt in der config.h
 	//DDRA = OUTA;
-	DDRC = OUTC;
+	//DDRC = OUTC;
 	DDRD = OUTD;
 	
  	#if USE_SERVO
@@ -84,6 +87,9 @@ int main(void)
 	#endif
 	#if USE_ENOCEAN
 		enocean_init();
+	#endif
+	#if USE_CAN2UDP
+		can2udp_init();
 	#endif
 	
 	//Spielerrei mit einem LCD
@@ -115,6 +121,9 @@ int main(void)
 
     #if USE_ENOCEAN
 		enocean_netInit();
+	#endif
+    #if USE_CAN2UDP
+		can2udp_netInit();
 	#endif
 
     #if USE_DHCP
@@ -178,9 +187,19 @@ int main(void)
     #if USE_MAIL
         mail_client_init();
 	#endif //USE_MAIL  
-		
+	
+
+	
+	// initialisieren des MCP2515
+	can_init(BITRATE_125_KBPS);
+	usart_write("can_init(BITRATE_125_KBPS)\r\n");
+//	can_set_mode(LOOPBACK_MODE);
+
+
 	while(1)
 	{
+
+
 		#if USE_ADC
 		ANALOG_ON;
 		#endif
@@ -243,11 +262,14 @@ int main(void)
 		#if USE_TELNETD
 			telnetd_send_data();
         #endif
-
+cli();
 		#if USE_ENOCEAN
 			enocean_main();
 		#endif
-		
+		#if USE_CAN2UDP
+			can2udp_main();
+		#endif
+sei();		
         if(ping.result)
         {
             usart_write("Get PONG: %i.%i.%i.%i\r\n",ping.ip1[0],ping.ip1[1],ping.ip1[2],ping.ip1[3]); 

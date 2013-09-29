@@ -17,6 +17,8 @@
 	#include "usart.h"
 	#include "cmd.h"
 
+	#include "can.h"
+
 	#define ENOCEAN_PORT_EEPROM_STORE    	50
 	#define ENOCEAN_LICHT_EEPROM_STORE    	60
 
@@ -26,6 +28,9 @@
 	void enocean_get(unsigned char);
 	void enocean_tick(void);
 	void enocean_packet_send(uint8_t addr, uint8_t status);
+
+
+
 
 	extern volatile uint8_t key_state;
 	extern volatile uint8_t key_press;
