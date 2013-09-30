@@ -58,6 +58,7 @@ uint8_t blinker;
 uint8_t blinker_cnt;
 
 uint32_t remote_ip = IP(0,0,0,0);
+uint32_t remote_ip_openhab = IP(0,0,0,0);
 
 
 // ----------------------------------------------------------------------------
@@ -79,6 +80,7 @@ void enocean_netInit(void) {
 
 // remote_ip = IP(192,168,2,100);
 
+remote_ip_openhab = IP(10,42,0,117);
 
 
 }
@@ -135,6 +137,7 @@ void send_test_msg(uint8_t addr, uint8_t cmd)
 		eth_buffer[UDP_DATA_START+1]=cmd;
 
 		create_new_udp_packet(2, 2342, 2342, remote_ip);
+		create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
 	}
 
 
@@ -167,6 +170,8 @@ void send_test_msg(uint8_t addr, uint8_t cmd)
 
 		create_new_udp_packet(2, 2342, 2342, 0xffffffff);
 		create_new_udp_packet(2, 2342, 2342, remote_ip);
+		create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
+
 	}	
 
 
@@ -328,6 +333,19 @@ void enocean_tick(void) {
 			arp_request(remote_ip);
 		}
 	}
+
+	static uint8_t arp_in_request_openhab = 5; 
+	if (arp_in_request_openhab) arp_in_request_openhab--;
+	entr_i = arp_entry_search(remote_ip_openhab);
+	if (*(uint32_t*)myip && remote_ip_openhab)
+	{
+		if ( (entr_i == MAX_ARP_ENTRY || arp_entry[entr_i].arp_t_time < 10) && arp_in_request_openhab == 0 )
+		{
+			arp_in_request_openhab = 60;
+			arp_request(remote_ip_openhab);
+		}
+	}
+
 
 can_t msg;
 msg.id = 0x12345678;
