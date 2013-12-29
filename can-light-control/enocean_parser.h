@@ -13,6 +13,11 @@
 #ifndef _ENOCEAN_PARSER_H_
 #define _ENOCEAN_PARSER_H_
 
+#include "config.h"
+
+#if USE_ENOCEAN_PARSER
+
+
 #include <avr/io.h>
 #include <util/crc16.h>
 
@@ -41,3 +46,4 @@ extern enocean_parser_t enocean_parser_input;
 
 
 #endif //_enocean_parser_H_
+#endif //USE_ENOCEAN_PARSER

@@ -61,7 +61,7 @@ endif
 
 #Fuse settings for ATmega8
 ifeq ($(MCU), atmega8)
-	FUSE_BITS = -u -U lfuse:w:0xbe:m -U hfuse:w:0xd1:m
+	FUSE_BITS = -u -U lfuse:w:0xbe:m -U hfuse:w:0xd2:m
 	HEX_FILE_NAME = MEGA8
 endif
 
@@ -88,6 +88,8 @@ SRC =  main.c timer.c
 SRC += enocean.c
 
 SRC += fifo.c uart.c enocean_parser.c hmi.c
+
+SRC += shackbus.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -180,6 +182,7 @@ AVRDUDE_PROGRAMMER = stk500v2
 #AVRDUDE_PORT = com1	   # programmer connected to serial device
 AVRDUDE_PORT = /dev/ttyUSB0	       # programmer connected to parallel port
 
+#AVRDUDE_WRITE_FLASH = -D -U flash:w:$(TARGET).hex $(FUSE_BITS)
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex $(FUSE_BITS)
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 

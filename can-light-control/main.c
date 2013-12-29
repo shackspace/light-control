@@ -30,29 +30,51 @@
 #include "enocean.h"
 #include <avr/interrupt.h>
 
+#include <avr/wdt.h>
+
 #include "can.h"
 #include "fifo.h"
 #include "uart.h"
 #include "enocean_parser.h"
 #include "hmi.h"
 
-prog_uint8_t can_filter[] = 
-{
-	// Group 0
-	MCP2515_FILTER(0),				// Filter 0
-	MCP2515_FILTER(0),				// Filter 1
-	
-	// Group 1
-	MCP2515_FILTER_EXTENDED(0),		// Filter 2
-	MCP2515_FILTER_EXTENDED(0),		// Filter 3
-	MCP2515_FILTER_EXTENDED(0),		// Filter 4
-	MCP2515_FILTER_EXTENDED(0),		// Filter 5
-	
-	MCP2515_FILTER(0),				// Mask 0 (for group 0)
-	MCP2515_FILTER_EXTENDED(0),		// Mask 1 (for group 1)
-};
-// You can receive 11 bit identifiers with either group 0 or 1.
 
+#include "shackbus.h"
+
+
+void reset_visualisation(void)
+{
+led_set(99,1);
+_delay_ms(40);
+led_set(99,0);
+led_set(0,1);
+_delay_ms(40);
+_delay_ms(20);
+_delay_ms(20);
+led_set(0,0);
+led_set(1,1);
+_delay_ms(40);
+_delay_ms(20);
+_delay_ms(20);
+led_set(1,0);
+led_set(2,1);
+_delay_ms(20);
+_delay_ms(40);
+_delay_ms(20);
+led_set(2,0);
+led_set(3,1);
+_delay_ms(40);
+_delay_ms(20);
+_delay_ms(20);
+led_set(3,0);
+led_set(4,1);
+_delay_ms(40);
+_delay_ms(20);
+_delay_ms(20);
+led_set(4,0);
+_delay_ms(40);
+_delay_ms(20);
+}
 
 
 //----------------------------------------------------------------------------
@@ -60,17 +82,19 @@ prog_uint8_t can_filter[] =
 int main(void)
 {  
 
-
-
     // Configuration hmi (Human Machine Interface)
-    hmi_init();
+    #if USE_HMI
+		hmi_init();
+	#endif
+
 
 	uart_init();	
 
-	uart_write("\n\rSystem Ready\n\r");
-    uart_write("Compiliert am "__DATE__" um "__TIME__"\r\n");
-    uart_write("Compiliert mit GCC Version "__VERSION__"\r\n");
-
+	#ifdef UART_DEBUG
+		uart_write("\n\rSystem Ready\n\r");
+		uart_write("Compiliert am "__DATE__" um "__TIME__"\r\n");
+		uart_write("Compiliert mit GCC Version "__VERSION__"\r\n");
+	#endif
 	_delay_ms(100);
 	
 	#if USE_ENOCEAN
@@ -79,91 +103,73 @@ int main(void)
 	
 	timer_init();
 
+	#if USE_SHACKBUS
+		shackbus_init();
+	#endif
+
+	reset_visualisation();
+
 
 	//Globale Interrupts einschalten
 	sei(); 
-	
 
-/*    // Initialize MCP2515
-    can_init(BITRATE_125_KBPS);
-    uart_write("can_init(BITRATE_125_KBPS);");
+	wdt_enable(WDTO_500MS);
 	
-    // Load filters and masks
-    can_static_filter(can_filter);
-    uart_write("can_static_filter(can_filter);");
-	
-    // Create a test messsage
-    can_t msg;
-	
-	msg.id = 0x234567;
-	msg.flags.rtr = 0;
-	msg.flags.extended = 1;
-	
-	msg.length = 8;
-	msg.data[0] = 0xde;
-	msg.data[1] = 0xad;
-	msg.data[2] = 0xbe;
-	msg.data[3] = 0xef;
-	
-    uart_write("juhuangekommen1/r/n");
-	// Send the message
-	can_send_message(&msg);
-    uart_write("juhuangekommen2/r/n");
-*/
-		
 	while(1)
 	{
-		
+
+		wdt_reset();
+
 		#if USE_ENOCEAN
 			enocean_main();
 		#endif
 		
-		hmi_main();
-
+	    #if USE_HMI
+			hmi_main();
+		#endif
 		
-		cli();		
-		if ( fifo_get_count(&uart_infifo) > 0 )// Wie groﬂ ist das FIFO?
-		{
-			if (enocean_parser_poll(fifo_get(&uart_infifo))==ENOCEAN_PARSER_STATE_CHKOK) {
-				// Es wurde ein enocean Packet empfangen
-				enocean_state_set(enocean_parser_input.id[0],enocean_parser_input.db[3]);			
-			}
-		}
-		sei();
+		#if USE_SHACKBUS
+			shackbus_main();
+		#endif
 
+		#if USE_ENOCEAN_PARSER
+			cli();		
+			if ( fifo_get_count(&uart_infifo) > 0 )// Wie groﬂ ist das FIFO?
+			{
+				if (enocean_parser_poll(fifo_get(&uart_infifo))==ENOCEAN_PARSER_STATE_CHKOK) {
+					// Es wurde ein enocean Packet empfangen
+					enocean_state_set(enocean_parser_input.id[0],enocean_parser_input.db[3]);			
+				}
+			}
+			sei();
+		#endif
+
+		//if (merker)
+		//  if(can_check_free_buffer())
+		//	can_send_message(&send_test_msg);
 
 		if (merker)
 		{
-/*			uart_write("sendsend/r/n");
 			merker=0;
-			can_send_message(&msg);
-
-			msg.length++;
-			if (msg.length==9)
-				msg.length=1;
-
-*/
+			static uint8_t wd_flag = 0;
+			wd_flag ^= 1;
+//            if (wd_flag==1) group_state_set(3,ENOCEAN_CHANNEL_SA_SS);
+//            if (wd_flag==0) group_state_set(3,ENOCEAN_CHANNEL_SA_CS);
 		}
 
 
-/*
-		// Check if a new messag was received
-		if (can_check_message())
+		can_error_register_t aktuelle_fehler = can_read_error_register();
+		if (aktuelle_fehler.rx)
 		{
-			can_t msg;
-			
-			// Try to read the message
-			if (can_get_message(&msg))
-			{
-				// If we received a message resend it with a different id
-				msg.id += 10;
-				
-				// Send the new message
-				can_send_message(&msg);
-			}
+//			group_state_set(2,ENOCEAN_CHANNEL_SA_SS);
+		}
+		if (aktuelle_fehler.tx)
+		{
+//			group_state_set(3,ENOCEAN_CHANNEL_SA_SS);
 		}
 
-*/		
+		
+		
     }//while (1)
 		
 return(0);

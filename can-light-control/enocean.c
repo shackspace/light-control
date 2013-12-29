@@ -21,6 +21,7 @@
 
 #include "enocean.h"
 #include "hmi.h"
+#include "shackbus.h"
 
 uint8_t enocean_channel_state[ENOCEAN_CHANNEL_COUNT];
 
@@ -92,6 +93,10 @@ void enocean_state_set(uint8_t channel, uint8_t state) {
       uint8_t bits = (state&0x07);
       enocean_channel_state[channel] = (enocean_channel_state[channel] & ~mask) | ( mask & bits );
 	}
+
+    //Event über Shackbus senden
+    _delay_ms(100);
+    shackbus_send_msg(channel, enocean_channel_state[channel] & ENOCEAN_CHANNEL_STATUS);
   }
   if (channel == 99)
 	led_set(99,state);

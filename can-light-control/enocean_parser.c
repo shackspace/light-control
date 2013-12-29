@@ -10,8 +10,11 @@
 
 ------------------------------------------------------------------------------*/
 
-#include <avr/io.h>
+#include "config.h"
 
+#if USE_ENOCEAN_PARSER
+
+#include <avr/io.h>
 #include "enocean_parser.h"
 
 
@@ -118,4 +121,5 @@ uint8_t enocean_parser_poll(uint8_t tmp)
 	return enocean_parser_state;
 }
 
+#endif //USE_ENOCEAN_PARSER
 

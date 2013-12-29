@@ -31,6 +31,11 @@
 	#include "enocean.h"
 #endif //USE_ENOCEAN
 
+#if USE_HMI
+	#include "hmi.h"
+#endif //USE_HMI
+
+
 volatile unsigned long time;
 volatile unsigned long time_watchdog = 0;
 
@@ -107,9 +112,18 @@ return;
 
 		static uint8_t ct0, ct1;
 		uint8_t i;
+		
+		uint8_t input_byte = 0;
+
+		input_byte |= ((PIND<<3)&0xE0); 
+
+		input_byte |= ((PIND>>1)&0x10); 
+		input_byte |= ((PIND>>3)&0x08); 
+		input_byte |= ((PIND>>5)&0x04); 
+		input_byte |= ((PINB<<1)&0x02); 
+		input_byte |= ((PIND>>2)&0x01); 
 		 
-		 
-		i = key_state ^ ~PIND;                            // key changed ?
+		i = key_state ^ ~input_byte;                            // key changed ?
 		ct0 = ~( ct0 & i );                             // reset or count ct0
 		ct1 = ct0 ^ (ct1 & i);                          // reset or count ct1
 		i &= ct0 & ct1;                                 // count until roll over ?
@@ -125,7 +139,17 @@ return;
 		prescaler_s = 199;
 		merker = 1;
 		
-		enocean_tick();
+		#if USE_ENOCEAN
+			enocean_tick();
+		#endif //USE_ENOCEAN
+
+		#if USE_HMI
+			hmi_tick();
+		#endif //USE_HMI
+		
+		#if USE_SHACKBUS
+			shackbus_tick();
+		#endif //USE_SHACKBUS
 		
 	}
 }
