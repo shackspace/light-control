@@ -286,7 +286,7 @@ begin:
 	@echo $(MSG_BEGIN)
 
 compile_libcan:
-	$(MAKE) -C code/src/
+	$(MAKE) -C avr-can-lib/src/
 
 finished:
 	@echo $(MSG_ERRORS_NONE)
