@@ -69,7 +69,7 @@ COMMAND_STRUCTUR COMMAND_TABELLE[] = // Befehls-Tabelle
 };
 
 #if HELPTEXT
-	PROGMEM char helptext[] = {
+	const PROGMEM char helptext[] = {
 		"RESET  - reset the AVR - Controller\r\n"
 		"ARP    - list the ARP table\r\n"
 		"TCP    - list the tcp table\r\n"

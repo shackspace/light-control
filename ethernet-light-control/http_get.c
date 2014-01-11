@@ -29,7 +29,7 @@
 #include "usart.h"
 #include "timer.h"
 	
-PROGMEM char WEATHER_GET_STRING[] = {"GET /globalweather.asmx/GetWeather?CityName=Paderborn&CountryName=Germany HTTP/1.1\r\n"
+const PROGMEM char WEATHER_GET_STRING[] = {"GET /globalweather.asmx/GetWeather?CityName=Paderborn&CountryName=Germany HTTP/1.1\r\n"
                                      //"GET / HTTP/1.1\r\n"
                                      "Host: www.webservicex.net\r\n"
                                      //"Host: www.ulrichradig.de\r\n"

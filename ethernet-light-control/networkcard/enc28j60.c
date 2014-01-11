@@ -45,7 +45,7 @@ unsigned char enc_revid = 0;
 static volatile unsigned char enc_cur_bank = 0;
 static volatile unsigned int  enc_next_packet_ptr = 0;
 
-static unsigned char enc_configdata[] PROGMEM = {
+const static unsigned char enc_configdata[] PROGMEM = {
 
 	// enc registers
 

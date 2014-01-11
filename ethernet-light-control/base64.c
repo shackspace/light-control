@@ -28,7 +28,7 @@
 
 
 
-PROGMEM char BASE64CODE[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+const PROGMEM char BASE64CODE[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 void decode_base64 (unsigned char *str1_in,unsigned char *str2_out)
 {
