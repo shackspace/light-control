@@ -287,6 +287,10 @@ begin:
 
 compile_libcan:
 	$(MAKE) -C avr-can-lib/src/
+	$(COPY) avr-can-lib/src/libcan.a libcan.a
+
+clean_libcan:
+	$(MAKE) -C avr-can-lib/src/ clean
 
 finished:
 	@echo $(MSG_ERRORS_NONE)
@@ -336,7 +340,7 @@ extcoff: $(TARGET).elf
 
 
 # Program the device.  
-program: $(TARGET).hex $(TARGET).eep
+program: compile_libcan $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
@@ -371,7 +375,7 @@ program: $(TARGET).hex $(TARGET).eep
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
 .PRECIOUS : $(OBJ)
-%.elf: $(OBJ) libcan.a
+%.elf: $(OBJ)
 	@echo
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
@@ -401,7 +405,7 @@ program: $(TARGET).hex $(TARGET).eep
 
 
 # Target: clean project.
-clean: begin clean_list finished end
+clean: begin clean_list clean_libcan finished end
 
 clean_list :
 	@echo
