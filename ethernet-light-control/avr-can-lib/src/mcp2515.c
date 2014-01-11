@@ -91,7 +91,7 @@ uint8_t mcp2515_read_register(uint8_t adress)
 	data = spi_putc(0xff);	
 	
 	SET(MCP2515_CS);
- 
+	
 	return data;
 }
 
@@ -125,7 +125,7 @@ uint8_t mcp2515_read_status(uint8_t type)
 
 // -------------------------------------------------------------------------
 
-prog_uint8_t _mcp2515_cnf[8][3] = {
+const uint8_t _mcp2515_cnf[8][3] PROGMEM = {
 	// 10 kbps
 	{	0x04,
 		0xb6,
@@ -169,26 +169,13 @@ prog_uint8_t _mcp2515_cnf[8][3] = {
 };
 
 // -------------------------------------------------------------------------
-bool mcp2515_init(uint8_t bitrate)
+bool mcp2515_init(can_bitrate_t bitrate)
 {
-
-	void usart_write_P (const char *Buffer,...);
-	#define usart_write(format, args...)   usart_write_P(PSTR(format) , ## args)
-	
-	usart_write("mcp2515_init(uint8_t bitrate)\r\n");
-	
 	if (bitrate >= 8)
 		return false;
 	
 	SET(MCP2515_CS);
 	SET_OUTPUT(MCP2515_CS);
-	usart_write("SET_OUTPUT(MCP2515_CS);\r\n");
-	
-
-
-	
-
-
 	
 	// Aktivieren der Pins fuer das SPI Interface
 	RESET(P_SCK);
@@ -204,11 +191,7 @@ bool mcp2515_init(uint8_t bitrate)
 	
 	// MCP2515 per Software Reset zuruecksetzten,
 	// danach ist er automatisch im Konfigurations Modus
-
-
 	RESET(MCP2515_CS);
-
-
 	spi_putc(SPI_RESET);
 	
 	_delay_ms(1);
@@ -230,11 +213,8 @@ bool mcp2515_init(uint8_t bitrate)
 	SET(MCP2515_CS);
 	
 	// TXnRTS Bits als Inputs schalten
-	_delay_ms(100);
 	mcp2515_write_register(TXRTSCTRL, 0);
 	
-
-
 	#if defined(MCP2515_INT)
 		SET_INPUT(MCP2515_INT);
 		SET(MCP2515_INT);

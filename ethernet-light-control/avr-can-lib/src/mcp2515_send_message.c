@@ -36,7 +36,6 @@
 // ----------------------------------------------------------------------------
 uint8_t mcp2515_send_message(const can_t *msg)
 {
-	
 	// Status des MCP2515 auslesen
 	uint8_t status = mcp2515_read_status(SPI_READ_STATUS);
 	
@@ -65,7 +64,6 @@ uint8_t mcp2515_send_message(const can_t *msg)
 	
 	RESET(MCP2515_CS);
 	spi_putc(SPI_WRITE_TX | address);
-	_delay_us(10);
 	#if SUPPORT_EXTENDED_CANID
 		mcp2515_write_id(&msg->id, msg->flags.extended);
 	#else

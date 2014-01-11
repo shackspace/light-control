@@ -33,8 +33,6 @@
 
 #include "config.h"
 
-
-
 #ifndef	CAN_FORCE_TX_ORDER
 	#define	CAN_FORCE_TX_ORDER		0
 #endif
