@@ -35,6 +35,10 @@
 	#include "hmi.h"
 #endif //USE_HMI
 
+#if USE_SHACKBUS
+	#include "shackbus.h"
+#endif //USE_SHACKBUS
+
 
 volatile unsigned long time;
 volatile unsigned long time_watchdog = 0;

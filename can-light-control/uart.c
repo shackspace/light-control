@@ -70,7 +70,7 @@ void uart_init()
 
 
 // Empfangene Zeichen werden in die Eingabgs-FIFO gespeichert und warten dort 
-ISR(SIG_UART_RECV)
+ISR(USART_RXC_vect)
 {
     fifo_put (&uart_infifo, UDR);
 }
@@ -84,7 +84,7 @@ ISR(USART_TXC_vect)
 // Ein Zeichen aus der Ausgabe-FIFO lesen und ausgeben 
 // Ist das Zeichen fertig ausgegeben, wird ein neuer SIG_UART_DATA-IRQ getriggert 
 // Ist die FIFO leer, deaktiviert die ISR ihren eigenen IRQ. 
-ISR(SIG_UART_DATA)
+ISR(USART_UDRE_vect)
 {
     if (uart_outfifo.count > 0) {
         UDR = fifo_get (&uart_outfifo);

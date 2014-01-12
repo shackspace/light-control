@@ -19,7 +19,7 @@
 
 
 
-prog_uint8_t can_filter[] = 
+uint8_t can_filter[] = 
 {
 	// Group 0
 	MCP2515_FILTER(0),				// Filter 0
@@ -191,6 +191,7 @@ void shackbus_main(void)
 			    // Send the new message
 				can_send_message(&msg);
 
+				void reset_visualisation(void);
 				reset_visualisation();
 			  }
 
@@ -213,18 +214,18 @@ uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
 
 void shackbus_tick(void)
 {
-	can_t ka;
-	shackbus_id_t ka_id;
-	ka_id.prio = 3;
-	ka_id.vlan = 4;
-	ka_id.dst  = 5;
-	ka_id.src  = 6;
-	ka_id.prot = 10;
+//	can_t ka;
+//	shackbus_id_t ka_id;
+//	ka_id.prio = 3;
+//	ka_id.vlan = 4;
+//	ka_id.dst  = 5;
+//	ka_id.src  = 6;
+//	ka_id.prot = 10;
 
-	ka.id = shackbus_sb2id(&ka_id);
-	ka.length = 2;
-	ka.data[0] = 23;
-	ka.data[1] = 42;
+//	ka.id = shackbus_sb2id(&ka_id);
+//	ka.length = 2;
+//	ka.data[0] = 23;
+//	ka.data[1] = 42;
 				
 //	can_send_message(&ka);
 }

@@ -274,7 +274,7 @@ ALL_ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp $(ASFLAGS)
 
 
 # Default target.
-all: begin gccversion sizebefore $(TARGET).elf $(TARGET).hex $(TARGET).eep \
+all: begin gccversion sizebefore compile_libcan $(TARGET).elf $(TARGET).hex $(TARGET).eep \
 	$(TARGET).lss $(TARGET).sym sizeafter finished end
 
 
@@ -284,6 +284,13 @@ all: begin gccversion sizebefore $(TARGET).elf $(TARGET).hex $(TARGET).eep \
 begin:
 	@echo
 	@echo $(MSG_BEGIN)
+
+compile_libcan:
+	$(MAKE) -C avr-can-lib/src/
+	$(COPY) avr-can-lib/src/libcan.a libcan.a
+
+clean_libcan:
+	$(MAKE) -C avr-can-lib/src/ clean
 
 finished:
 	@echo $(MSG_ERRORS_NONE)
@@ -333,7 +340,7 @@ extcoff: $(TARGET).elf
 
 
 # Program the device.  
-program: $(TARGET).hex $(TARGET).eep
+program: compile_libcan $(TARGET).hex $(TARGET).eep
 	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH) $(AVRDUDE_WRITE_EEPROM)
 
 
@@ -398,7 +405,7 @@ program: $(TARGET).hex $(TARGET).eep
 
 
 # Target: clean project.
-clean: begin clean_list finished end
+clean: begin clean_list clean_libcan finished end
 
 clean_list :
 	@echo

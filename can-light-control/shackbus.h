@@ -28,6 +28,7 @@
 
 void shackbus_init(void);
 void shackbus_main(void);
+void shackbus_tick(void);
 
 uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2);
 
