@@ -125,7 +125,7 @@ uint8_t mcp2515_read_status(uint8_t type)
 
 // -------------------------------------------------------------------------
 
-prog_uint8_t _mcp2515_cnf[8][3] = {
+const uint8_t _mcp2515_cnf[8][3] PROGMEM = {
 	// 10 kbps
 	{	0x04,
 		0xb6,
@@ -169,7 +169,7 @@ prog_uint8_t _mcp2515_cnf[8][3] = {
 };
 
 // -------------------------------------------------------------------------
-bool mcp2515_init(uint8_t bitrate)
+bool mcp2515_init(can_bitrate_t bitrate)
 {
 	if (bitrate >= 8)
 		return false;
