@@ -19,7 +19,7 @@
 
 
 
-uint8_t can_filter[] = 
+const uint8_t PROGMEM can_filter[] = 
 {
 	// Group 0
 	MCP2515_FILTER(0),				// Filter 0
