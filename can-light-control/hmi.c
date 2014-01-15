@@ -38,19 +38,18 @@ uint8_t channel_led_conf[12]={0,0,1,1,0,1,3,3,4,4,2,5};
 
 void hmi_init(void)
 {
-    //LED Ausgänge PC[5-0]	
-    PORTC &= 0x3F;
-    DDRC = 0x3F;
+	//LED Ausgänge PC[5-0]	
+	PORTC &= 0x3F;
+	DDRC = 0x3F;
 
-    //Inputs mit aktiviertem Pullup PD[7-2]	
-    DDRD  &= 0x03;
-    PORTD |= 0xFC;
+	//Inputs mit aktiviertem Pullup PD[7-2]	
+	DDRD  &= 0x03;
+	PORTD |= 0xFC;
 
 	DDRB  &= 0xFE;
 	PORTB |= 0x01;
 
 	hauptschalter_status = INIT;
-
 }
 
 

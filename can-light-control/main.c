@@ -82,11 +82,10 @@ _delay_ms(20);
 int main(void)
 {  
 
-    // Configuration hmi (Human Machine Interface)
-    #if USE_HMI
+	// Configuration hmi (Human Machine Interface)
+	#if USE_HMI
 		hmi_init();
 	#endif
-
 
 	uart_init();	
 
@@ -124,7 +123,7 @@ int main(void)
 			enocean_main();
 		#endif
 		
-	    #if USE_HMI
+		#if USE_HMI
 			hmi_main();
 		#endif
 		
