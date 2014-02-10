@@ -189,6 +189,31 @@ void shackbus_main(void)
 				void reset_visualisation(void);
 				reset_visualisation();
 			}
+
+			/* prot=11 = PowerManagement data[0]=1 =on/off data[1]=channel data[2]=state */
+			/* channel 120 = Hauptschalter      */
+			/* channel 140 0x8c = DLE Dusche    */
+			/* channel 141 0x8d = DLE E-Lab     */
+			/* channel 142 0x8e = Optionsraeume  */
+			/* channel 143 0x8f = Kueche         */
+			if (shackbus_id.prot == 11 && shackbus_id.dst == 6 && msg.data[0]==1)
+			{
+				shackbus_id.prio = 3;
+				shackbus_id.vlan = 4;
+				shackbus_id.dst  = shackbus_id.src;
+				shackbus_id.src  = 6;
+				shackbus_id.prot = 11;
+
+				msg.id = shackbus_sb2id(&shackbus_id);
+				msg.length = 3;
+				msg.data[0] = 1;
+				msg.data[1] = msg.data[1];
+				msg.data[2] = msg.data[2];
+
+				/* Send the message */
+				can_send_message(&msg);
+				enocean_packet_send(msg.data[1], msg.data[2]);
+			}
 		}
 	}
 }
