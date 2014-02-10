@@ -285,9 +285,14 @@ begin:
 	@echo
 	@echo $(MSG_BEGIN)
 
-compile_libcan:
+compile_libcan: libcan_make libcan.a
+
+libcan_make:
 	$(MAKE) -C avr-can-lib/src/
+
+libcan.a: avr-can-lib/src/libcan.a
 	$(COPY) avr-can-lib/src/libcan.a libcan.a
+
 
 clean_libcan:
 	$(MAKE) -C avr-can-lib/src/ clean
@@ -375,7 +380,7 @@ program: compile_libcan $(TARGET).hex $(TARGET).eep
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
 .PRECIOUS : $(OBJ)
-%.elf: $(OBJ)
+%.elf: $(OBJ) libcan.a
 	@echo
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
