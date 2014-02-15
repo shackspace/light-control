@@ -131,10 +131,6 @@
 	#define HTTP_AUTH_STRING "admin:uli1"
     //#define HTTP_AUTH_STRING "user:pass"
 	
-    //Email vesand benutzen? Konfiguration des
-    //Emailclient in der Sendmail.h
-    #define USE_MAIL        0
-    
     //Empfang von Wetterdaten auf der Console (über HTTP_GET)
     #define GET_WEATHER     0
     

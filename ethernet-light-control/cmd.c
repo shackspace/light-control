@@ -34,7 +34,6 @@
 #include "httpd.h"
 #include "ntp.h"
 #include "wol.h"
-#include "sendmail.h"
 #include "timer.h"
 #include "dnsc.h"
 	
@@ -58,9 +57,6 @@ COMMAND_STRUCTUR COMMAND_TABELLE[] = // Befehls-Tabelle
 	{"WOL",command_wol},
 	#endif //USE_WOL
 	{"PING", command_ping},
-	#if USE_MAIL
-    {"mail", command_mail},
-    #endif //USE_MAIL
 	#if HELPTEXT
 	{"HELP",command_help},
 	{"?",command_help},
@@ -82,9 +78,6 @@ COMMAND_STRUCTUR COMMAND_TABELLE[] = // Befehls-Tabelle
 		"VER    - list enc version number\r\n"
 		"SV     - set variable\r\n"
         "PING   - send Ping\r\n"
-        #if USE_MAIL
-        "MAIL   - send E_MAIL\r\n"
-        #endif //USE_MAIL
 		#if USE_WOL
 		"WOL    - send WOL / set MAC / set MAC and IP\r\n"
 		#endif //USE_WOL
@@ -271,15 +264,6 @@ void command_ntp_refresh (void)
 	ntp_request();
 	#endif //USE_NTP
 }
-
-//------------------------------------------------------------------------------
-//Sendet eine fertige E-MAIL
-#if USE_MAIL
-void command_mail (void)
-{
-	mail_enable = 1;
-}
-#endif //USE_MAIL
 
 //------------------------------------------------------------------------------
 //

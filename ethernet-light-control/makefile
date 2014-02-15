@@ -83,7 +83,7 @@ SRC += networkcard/enc28j60.c networkcard/rtl8019.c
 
 SRC += httpd.c telnetd.c ntp.c lcd.c udp_lcd.c wol.c
 
-SRC += http_get.c analog.c sendmail.c
+SRC += http_get.c analog.c
 
 SRC += camera/cam.c camera/servo.c
 

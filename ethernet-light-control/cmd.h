@@ -61,9 +61,6 @@
 	#if USE_WOL
 	extern void command_wol 		(void);
 	#endif //USE_WOL
-    #if USE_MAIL
-	extern void command_mail 		(void);
-	#endif //USE_MAIL
 	extern void command_ping 		(void);
 	extern void command_help 		(void);
 	

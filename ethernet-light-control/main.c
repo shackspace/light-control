@@ -41,7 +41,6 @@
 #include "analog.h"
 #include "camera/cam.h"
 #include "camera/servo.h"
-#include "sendmail.h"
 #include <avr/eeprom.h>
 #include <util/delay.h>
 #include "dhcpc.h"
@@ -184,10 +183,6 @@ int main(void)
         wol_init();
 	#endif //USE_WOL
     
-    #if USE_MAIL
-        mail_client_init();
-	#endif //USE_MAIL  
-	
 
 	
 	// initialisieren des MCP2515
@@ -232,15 +227,6 @@ int main(void)
 		}
 		#endif //USE_NTP
 		
-        //Versand von E-Mails
-        #if USE_MAIL
-        if (mail_enable == 1)
-        {
-            mail_enable = 0;
-            mail_send();
-        }
-        #endif //USE_MAIL
-        
         //Rechner im Netzwerk aufwecken
         #if USE_WOL
         if (wol_enable == 1)
