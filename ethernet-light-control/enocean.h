@@ -20,7 +20,6 @@
 	#include "can.h"
 
 	#define ENOCEAN_PORT_EEPROM_STORE    	50
-	#define ENOCEAN_LICHT_EEPROM_STORE    	60
 
 	void enocean_init(void);
 	void enocean_netInit(void);

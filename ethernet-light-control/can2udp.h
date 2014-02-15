@@ -36,7 +36,7 @@
 	{
 		uint32_t can_id; //32 bit CAN_ID + EFF/RTR/ERR flags
 		uint8_t can_dlc; //data length code
-		uint8_t state;
+		uint8_t state;   // 0=>Data available 1=>Ack 2=>Syn (3=>Fin)?? 4=>Reset
 		uint8_t tmp[2];
 		uint8_t data[8];  //data
 	} can_frame_t;

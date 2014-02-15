@@ -109,14 +109,11 @@ void enocean_init(void) {
 	{
 		licht_status[i] = 0;
 
-		licht_status[i] = eeprom_read_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i);	
-
 		if (licht_status[i] == 0xFF)
 		{
 			licht_status[i] = 0;
 		}
 
-//		licht_status[i] |= ENOCEAN_CHANNEL_ACT;
 	}
 
 	hauptschalter_status = INIT;
@@ -128,7 +125,7 @@ void enocean_init(void) {
 }
 
 
-void send_test_msg(uint8_t addr, uint8_t cmd)
+void send_udp_msg(uint8_t addr, uint8_t cmd)
 {
 
 	if (addr >= 0 && addr < 12)
@@ -200,7 +197,7 @@ void shackbus_main(void)
 			can2udp(&msg); //msg an udp weiterleiten
 
 			//Wenn der Event über Can kommt dann per udp weiterleiten / brodcasten
-			send_test_msg(msg.data[0], msg.data[1]);
+			send_udp_msg(msg.data[0], msg.data[1]);
 
         }
     }
@@ -240,9 +237,7 @@ void enocean_main(void) {
 		if (licht_status[i] & ENOCEAN_CHANNEL_ACT)
 		{
 			licht_status[i] &= ~ENOCEAN_CHANNEL_ACT;
-			enocean_packet_send(100+i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
-
-		    eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
+			enocean_packet_send(i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
 		}
 	
 	}
@@ -301,10 +296,7 @@ void enocean_get(unsigned char index) {
 		}
 
 
-	} else {
-	//	enocean_packet_send(100+eth_buffer[UDP_DATA_START]-'0', eth_buffer[UDP_DATA_START+1]-'0' );
 	}
-
 }
 
 // ----------------------------------------------------------------------------
@@ -382,42 +374,17 @@ msg.id = shackbus_sb2id(&sb);
 
 void enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
-	uint8_t packet_tmp[14] = {0xa5, 0x5a, 0x0b, 0x05, 
-		((cmd+2) << 5 | 16),
-		0, 0, 0, 0, 0, 0,
-		(addr), 0x10, 0};
-
-	for (uint8_t i = 2; i < 13; i++)
-		packet_tmp[13] += packet_tmp[i];
-
-	for (uint8_t i = 0; i < 14; i++) {
-		usart_write_char(packet_tmp[i]);
-	}
-
-
-
-	// Create a test messsage
-	can_t send_msg_blink;
-
-/*3bit prio
-4bit vlan = 4
-8bit src  = 5
-8bit dst = 6
-6bit prot = 9
-*///	send_msg_blink.id = 0x00020109;  //Absender = 2   Empfänger = 1
-	send_msg_blink.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+9L);  //Absender = 2   Empfänger = 1
-	send_msg_blink.flags.rtr = 0;
-
-	send_msg_blink.flags.extended = 1;
-
-	send_msg_blink.length  = 3;
-
-
-			send_msg_blink.data[1] = cmd;
-			send_msg_blink.data[0] = addr-100;
-			can_send_message(&send_msg_blink);
-			can2udp(&send_msg_blink);
-
+	// Send the message to can-bus and can2udp
+	can_t enocean_packet;
+	/* prio = 3; vlan = 4; src  = 5; dst = 6, prot = 9 */
+	enocean_packet.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+9L);
+	enocean_packet.flags.rtr = 0;
+	enocean_packet.flags.extended = 1;
+	enocean_packet.length  = 3;
+	enocean_packet.data[1] = cmd;
+	enocean_packet.data[0] = addr;
+	can_send_message(&enocean_packet);
+	can2udp(&enocean_packet);
 }
 
 
