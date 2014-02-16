@@ -89,10 +89,7 @@
 
 	//Baudrate der seriellen Schnittstelle
 	#define BAUDRATE 9600
-	
-    //Commandos und Ausgaben erfolgen über Telnet
-    #define CMD_TELNET      0
-    
+	    
 #endif //_CONFIG_H
 
 

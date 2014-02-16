@@ -22,7 +22,6 @@
  Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA. 
 ------------------------------------------------------------------------------*/
 #include "config.h"
-#include "telnetd.h"
 #include "usart.h"
 #include "stack.h"
 
@@ -64,28 +63,6 @@ void usart_init(unsigned long baudrate)
 //Routine für die Serielle Ausgabe eines Zeichens (Schnittstelle0)
 void usart_write_char(char c)
 {
-#if CMD_TELNET
-	if(usart_status.usart_disable)
-	{
-        if(rx_buffer_pointer_in == (rx_buffer_pointer_out - 1))
-        {
-            //Datenverlust
-                    telnetd_send_data ();
-                    while(telnetd_status.ack_wait)
-                    {
-                        eth_get_data();
-                    }
-        }
-
-        *rx_buffer_pointer_in++ = c;
-
-        if (rx_buffer_pointer_in == &usart_rx_buffer[BUFFER_SIZE-1])
-        {
-            rx_buffer_pointer_in = &usart_rx_buffer[0];
-        }
-    }
-    return;
-#else
     if(!usart_status.usart_disable)
     {
         //Warten solange bis Zeichen gesendet wurde
@@ -94,7 +71,6 @@ void usart_write_char(char c)
         UDR = c;
     }
     return;
-#endif
 }
 
 //------------------------------------------------------------------------------

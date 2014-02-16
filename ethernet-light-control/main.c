@@ -30,7 +30,6 @@
 #include "stack.h"
 #include "timer.h"
 #include "cmd.h"
-#include "telnetd.h"
 #include <avr/eeprom.h>
 #include <util/delay.h>
 #include "dhcpc.h"
@@ -60,9 +59,6 @@ int main(void)
 	
 	//Applikationen starten
 	stack_init();
-	#if USE_TELNETD
-		telnetd_init();
-	#endif
 	#if USE_ENOCEAN
 		enocean_init();
 	#endif
@@ -139,10 +135,6 @@ int main(void)
         }
         #endif //USE_DHCP
   
-		//USART Daten für Telnetanwendung?
-		#if USE_TELNETD
-			telnetd_send_data();
-        #endif
 cli();
 		#if USE_ENOCEAN
 			enocean_main();
