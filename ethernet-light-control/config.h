@@ -96,9 +96,6 @@
 	//Baudrate der seriellen Schnittstelle
 	#define BAUDRATE 9600
 	
-	//AD-Wandler benutzen?
-	#define USE_ADC			0
-
 	//Kamera mit einbinden
 	//Kamera arbeitet nur mit einem 14,7456Mhz Quarz!
 	#define USE_CAM			0

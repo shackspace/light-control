@@ -32,7 +32,6 @@
 #include "wol.h"
 #include "cmd.h"
 #include "telnetd.h"
-#include "analog.h"
 #include "camera/cam.h"
 #include "camera/servo.h"
 #include <avr/eeprom.h>
@@ -59,10 +58,6 @@ int main(void)
 	#endif //USE_SERVO
 	
     usart_init(BAUDRATE); // setup the UART
-	
-	#if USE_ADC
-		ADC_Init();
-	#endif
 	
 	usart_write("\n\rSystem Ready\n\r");
     usart_write("Compiliert am "__DATE__" um "__TIME__"\r\n");
@@ -139,9 +134,6 @@ int main(void)
 	{
 
 
-		#if USE_ADC
-		ANALOG_ON;
-		#endif
 	    eth_get_data();
 		
         //Terminalcommandos auswerten
