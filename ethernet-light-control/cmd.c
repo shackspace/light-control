@@ -32,7 +32,6 @@
 #include "usart.h"
 #include "stack.h"
 #include "httpd.h"
-#include "ntp.h"
 #include "wol.h"
 #include "timer.h"
 #include "dnsc.h"
@@ -47,12 +46,10 @@ COMMAND_STRUCTUR COMMAND_TABELLE[] = // Befehls-Tabelle
 	{"IP",command_ip},
 	{"NET",command_net},
 	{"ROUTER",command_router},
-	{"NTP",command_ntp},
 	{"MAC",command_mac},
 	{"VER",command_ver},
 	{"SV",command_setvar},
 	{"TIME",command_time},
-	{"NTPR",command_ntp_refresh},	
 	#if USE_WOL
 	{"WOL",command_wol},
 	#endif //USE_WOL
@@ -72,8 +69,6 @@ COMMAND_STRUCTUR COMMAND_TABELLE[] = // Befehls-Tabelle
 		"IP     - list/change ip\r\n"
 		"NET    - list/change netmask\r\n"
 		"ROUTER - list/change router ip\r\n"
-		"NTP    - list/change NTP\r\n"
-		"NTPR   - NTP Refresh\r\n"
 		"MAC    - list MAC-address\r\n"
 		"VER    - list enc version number\r\n"
 		"SV     - set variable\r\n"
@@ -147,17 +142,6 @@ void write_eeprom_ip (unsigned int eeprom_adresse)
 			eeprom_write_byte((unsigned char *)(eeprom_adresse + count),variable[count]);
 		}
 	}
-}
-
-//------------------------------------------------------------------------------
-//print/edit NTP Server IP
-void command_ntp (void)
-{
-	#if USE_NTP
-	write_eeprom_ip(NTP_IP_EEPROM_STORE);
-	(*((unsigned long*)&ntp_server_ip[0])) = get_eeprom_value(NTP_IP_EEPROM_STORE,NTP_IP);
-	usart_write("NTP_Server: %1i.%1i.%1i.%1i\r\n",ntp_server_ip[0],ntp_server_ip[1],ntp_server_ip[2],ntp_server_ip[3]);
-	#endif //USE_NTP
 }
 
 //------------------------------------------------------------------------------
@@ -254,15 +238,6 @@ void command_time (void)
 //	unsigned char mm = (time/60)%60;
 //	unsigned char ss = time %60;
 //	usart_write ("\n\rTIME: %2i:%2i:%2i\r\n",hh,mm,ss);
-}
-
-//------------------------------------------------------------------------------
-//Time Refresh via NTP-Server
-void command_ntp_refresh (void)
-{
-	#if USE_NTP
-	ntp_request();
-	#endif //USE_NTP
 }
 
 //------------------------------------------------------------------------------

@@ -44,7 +44,6 @@
 #include "httpd.h"
 #include "webpage.h"
 #include "lcd.h"
-#include "ntp.h"
 
 struct http_table http_entry[MAX_TCP_ENTRY];
 
@@ -477,27 +476,6 @@ void httpd_data_send (unsigned char index)
 				http_entry[index].new_page_pointer=http_entry[index].new_page_pointer+5;
 			}
 			
-            #if USE_NTP
-            //Zeit in Webseite einfügen
-            if (strncasecmp_P("TIME",http_entry[index].new_page_pointer,4)==0)
-            {
-                if (ntp_state == NTP_STATE_REQ_ERR)
-                {
-                    strcpy("dstr","-");
-                }
-                else
-                {
-                    ntp_struct dt;
-                    decode_time(time, &dt);
-                    sprintf_P(dstr, PSTR("%s, %s"), dt.datestr, dt.timestr);
-                }
-                str_len = strnlen(dstr,24);
-                memmove(&eth_buffer[TCP_DATA_START+a],dstr,str_len);
-                a += str_len - 1;
-                http_entry[index].new_page_pointer=http_entry[index].new_page_pointer+4;
-            }
-            #endif
-            
 			//Einsetzen des Port Status %PORTxy durch "checked" wenn Portx.Piny = 1
 			//x: A..G  y: 0..7 
 			if (strncasecmp_P("PORT",http_entry[index].new_page_pointer,4)==0)

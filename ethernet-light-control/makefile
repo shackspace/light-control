@@ -81,7 +81,7 @@ SRC =  main.c usart.c stack.c timer.c cmd.c base64.c
 
 SRC += networkcard/enc28j60.c networkcard/rtl8019.c
 
-SRC += httpd.c telnetd.c ntp.c lcd.c udp_lcd.c wol.c
+SRC += httpd.c telnetd.c lcd.c udp_lcd.c wol.c
 
 SRC += http_get.c analog.c
 

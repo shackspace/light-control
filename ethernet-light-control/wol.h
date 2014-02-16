@@ -39,5 +39,5 @@
 	void wol_init(void);
 	void wol_request(void); 
 	
-#endif //USE_NTP
+#endif //USE_WOL
 

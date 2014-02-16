@@ -141,10 +141,6 @@ PROGMEM char Page2[] = {
 	"Compiliert mit GCC Version "__VERSION__"<br><br>\r\n"
 	"Besucher seit Start des Webservers (%VA@09)<br><br>\r\n"
 
-	#if USE_NTP
-	"Aktuelle Zeit: %TIME<br><br>\r\n"
-	#endif
-
 	"</div><div id=\"tail\"><a href=\"http://www.ulrichradig.de\">www.ulrichradig.de</a> Ulrich Radig 2008</div>\r\n"
 	"</body></html>\r\n"
 	"%END"};

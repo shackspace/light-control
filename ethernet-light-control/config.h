@@ -42,9 +42,6 @@
     //Watchdog timer for the ENC2860, resets the stack if timeout occurs
     #define WTT 1200 //Watchdog timer in timer interrupt
 
-    //NTP refresh before stack timeout occurs...
-    #define NTP_REFRESH 1140
-
 	//Umrechnung von IP zu unsigned long
 	#define IP(a,b,c,d) ((unsigned long)(d)<<24)+((unsigned long)(c)<<16)+((unsigned long)(b)<<8)+a
 
@@ -73,10 +70,6 @@
     #define USE_DNS     0 //1 = DNS Client on
     #define DNS_IP      IP(192,168,0,1)
     
-	
-	//IP des NTP-Servers z.B. Server 1.de.pool.ntp.org
-	#define USE_NTP		0 //1 = NTP Client on
-	#define NTP_IP		IP(77,37,6,59)
 	
 	//Broadcast-Adresse für WOL
 	#define USE_WOL			0 //1 = WOL on

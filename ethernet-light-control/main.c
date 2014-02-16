@@ -33,7 +33,6 @@
 #include "httpd.h"
 #include "cmd.h"
 #include "telnetd.h"
-#include "ntp.h"
 #include "base64.h"
 #include "http_get.h"
 #include "lcd.h"
@@ -146,38 +145,6 @@ int main(void)
     usart_write("DNS  %1i.%1i.%1i.%1i\r\n", dns_server_ip[0], dns_server_ip[1], dns_server_ip[2], dns_server_ip[3]);
     #endif //USE_DNS
     
-	#if USE_NTP
-        #if USE_DNS
-        dns_init();
-        if ( dns_resolve("1.de.pool.ntp.org") == 0) //resolve NTP server
-        {
-          for (unsigned char count = 0; count<4; count++)
-          {
-            eeprom_busy_wait ();
-            eeprom_write_byte((unsigned char *)(NTP_IP_EEPROM_STORE + count),dns_resolved_ip[count]);
-          }
-        }
-        else
-        {
-            usart_write("DNS Err.\r\n");
-        }
-        #endif //USE_DNS
-    
-   ntp_init(); 
-   
-   for(a=0;a<1000000;a++){asm("nop");};
-   
-   ntp_request();
-   
-    if ( ntp() != 0 )
-	{
-	  usart_write("NTP Err.\r\n");
-	}
-    else
-	{
-	  command_time();
-	}
-	#endif //USE_NTP
 	
 	#if USE_WOL
         wol_init();
@@ -219,14 +186,6 @@ int main(void)
         http_request ();
         #endif
         
-        //Empfang von Zeitinformationen
-		#if USE_NTP
-		if(!ntp_timer){
-			ntp_timer = NTP_REFRESH;
-			ntp_request();
-		}
-		#endif //USE_NTP
-		
         //Rechner im Netzwerk aufwecken
         #if USE_WOL
         if (wol_enable == 1)

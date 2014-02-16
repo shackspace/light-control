@@ -47,17 +47,15 @@
 	//Ausgabe der TCP Tabelle
 	extern void command_tcp 		(void);
 	
-	//ändern/ausgabe der IP, NETMASK, ROUTER_IP, NTP_IP
+	//ändern/ausgabe der IP, NETMASK, ROUTER_IP
 	extern void command_ip 			(void);
 	extern void command_net 		(void);
 	extern void command_router		(void);
-	extern void command_ntp 		(void);
 
 	extern void command_mac			(void);
 	extern void command_ver			(void);
 	extern void command_setvar		(void);
 	extern void command_time		(void);
-	extern void command_ntp_refresh	(void);
 	#if USE_WOL
 	extern void command_wol 		(void);
 	#endif //USE_WOL
