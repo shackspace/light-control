@@ -31,7 +31,6 @@
 #include <avr/eeprom.h>
 #include "usart.h"
 #include "stack.h"
-#include "wol.h"
 #include "timer.h"
 #include "dnsc.h"
 	
@@ -49,9 +48,6 @@ COMMAND_STRUCTUR COMMAND_TABELLE[] = // Befehls-Tabelle
 	{"VER",command_ver},
 	{"SV",command_setvar},
 	{"TIME",command_time},
-	#if USE_WOL
-	{"WOL",command_wol},
-	#endif //USE_WOL
 	{"PING", command_ping},
 	#if HELPTEXT
 	{"HELP",command_help},
@@ -72,9 +68,6 @@ COMMAND_STRUCTUR COMMAND_TABELLE[] = // Befehls-Tabelle
 		"VER    - list enc version number\r\n"
 		"SV     - set variable\r\n"
         "PING   - send Ping\r\n"
-		#if USE_WOL
-		"WOL    - send WOL / set MAC / set MAC and IP\r\n"
-		#endif //USE_WOL
 		"TIME   - get time\r\n"
 		"HELP   - print Helptext\r\n"
 		"?      - print Helptext\r\n"
@@ -239,34 +232,6 @@ void command_time (void)
 //	usart_write ("\n\rTIME: %2i:%2i:%2i\r\n",hh,mm,ss);
 }
 
-//------------------------------------------------------------------------------
-//
-void command_wol (void)
-{
-	#if USE_WOL
-	// EEPROM beschreiben, falls Parameter angegeben wurden
-	if ((*((unsigned int*)&variable[0]) != 0x00000000) || (*((unsigned int*)&variable[1]) != 0x00000000) || (*((unsigned int*)&variable[2]) != 0x00000000))
-	{	
-		//schreiben der MAC
-		for (unsigned char count = 0; count<6; count++)
-		{
-			eeprom_busy_wait ();
-			eeprom_write_byte((unsigned char *)(WOL_MAC_EEPROM_STORE + count),variable[count]);
-		}
-		//zusätzlich schreiben der Broadcast-Adresse, falls vorhandenden
-		for (unsigned char count = 0; count<4 && (*((unsigned int*)&variable[6]) != 0x00000000);count++)
-		{
-			eeprom_busy_wait ();
-			eeprom_write_byte((unsigned char*)(WOL_BCAST_EEPROM_STORE + count),variable[count+6]);
-		}
-		//init
-		wol_init();
-	}else{
-		//MagicPacket senden
-		wol_request();
-	}
-	#endif //USE_WOL	
-}
 
 //------------------------------------------------------------------------------
 // Sende "Ping" an angegebene Adresse

@@ -29,7 +29,6 @@
 #include "networkcard/rtl8019.h"
 #include "stack.h"
 #include "timer.h"
-#include "wol.h"
 #include "cmd.h"
 #include "telnetd.h"
 #include "camera/cam.h"
@@ -118,12 +117,6 @@ int main(void)
     #endif //USE_DNS
     
 	
-	#if USE_WOL
-        wol_init();
-	#endif //USE_WOL
-    
-
-	
 	// initialisieren des MCP2515
 	can_init(BITRATE_125_KBPS);
 	usart_write("can_init(BITRATE_125_KBPS)\r\n");
@@ -150,15 +143,6 @@ int main(void)
 			usart_status.usart_ready =0;
 		}
 		
-        //Rechner im Netzwerk aufwecken
-        #if USE_WOL
-        if (wol_enable == 1)
-        {
-            wol_enable = 0;
-            wol_request();
-        }
-        #endif //USE_WOL
-        
         #if USE_DHCP
         if ( dhcp() != 0) //check for lease timeout
         {

@@ -56,9 +56,6 @@
 	extern void command_ver			(void);
 	extern void command_setvar		(void);
 	extern void command_time		(void);
-	#if USE_WOL
-	extern void command_wol 		(void);
-	#endif //USE_WOL
 	extern void command_ping 		(void);
 	extern void command_help 		(void);
 	

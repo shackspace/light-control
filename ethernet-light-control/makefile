@@ -81,7 +81,7 @@ SRC =  main.c usart.c stack.c timer.c cmd.c
 
 SRC += networkcard/enc28j60.c networkcard/rtl8019.c
 
-SRC += telnetd.c wol.c
+SRC += telnetd.c
 
 SRC += camera/cam.c camera/servo.c
 

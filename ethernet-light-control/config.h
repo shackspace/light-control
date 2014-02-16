@@ -69,12 +69,6 @@
     //DNS-Server
     #define USE_DNS     0 //1 = DNS Client on
     #define DNS_IP      IP(192,168,0,1)
-    
-	
-	//Broadcast-Adresse für WOL
-	#define USE_WOL			0 //1 = WOL on
-	#define WOL_BCAST_IP	IP(192,168,0,255)
-	#define WOL_MAC 		{0x00,0x1A,0xA0,0x9C,0xC6,0x0A}
 	
 	//MAC Adresse des Webservers	
 	#define MYMAC1	0x00
