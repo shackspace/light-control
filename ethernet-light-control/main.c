@@ -35,8 +35,6 @@
 #include "telnetd.h"
 #include "base64.h"
 #include "http_get.h"
-#include "lcd.h"
-#include "udp_lcd.h"
 #include "analog.h"
 #include "camera/cam.h"
 #include "camera/servo.h"
@@ -90,14 +88,6 @@ int main(void)
 		can2udp_init();
 	#endif
 	
-	//Spielerrei mit einem LCD
-	#if USE_SER_LCD
-	udp_lcd_init();
-	lcd_init();
-	lcd_clear();
-	back_light = 1;
-	lcd_print(0,0,"System Ready");
-	#endif
 	//Ethernetcard Interrupt enable
 	ETH_INT_ENABLE;
 
@@ -105,16 +95,9 @@ int main(void)
 	sei(); 
 	
 	#if USE_CAM
-		#if USE_SER_LCD
-		lcd_print(1,0,"CAMERA INIT");
-		#endif //USE_SER_LCD
 	for(a=0;a<2000000;a++){asm("nop");};
 	cam_init();
 	max_bytes = cam_picture_store(CAM_RESOLUTION);
-		#if USE_SER_LCD
-		back_light = 0;
-		lcd_print(1,0,"CAMERA READY");
-		#endif //USE_SER_LCD
 	#endif //USE_CAM
 
     #if USE_ENOCEAN

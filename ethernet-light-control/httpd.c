@@ -43,7 +43,6 @@
 
 #include "httpd.h"
 #include "webpage.h"
-#include "lcd.h"
 
 struct http_table http_entry[MAX_TCP_ENTRY];
 

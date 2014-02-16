@@ -96,11 +96,6 @@
 	//Baudrate der seriellen Schnittstelle
 	#define BAUDRATE 9600
 	
-	//LCD Routinen mit einbinden
-	#define USE_SER_LCD		0
-	//LCD im 4Bit Mode oder seriell
-	#define USE_LCD_4Bit	0
-
 	//AD-Wandler benutzen?
 	#define USE_ADC			0
 
