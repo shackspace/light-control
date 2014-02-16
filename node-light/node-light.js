@@ -15,6 +15,14 @@ var light_state = [
 {"id":8,"state":"notdef"}
 ]
 
+var power_state = [
+{},
+{"id":1,"state":"notdef"},
+{"id":2,"state":"notdef"},
+{"id":3,"state":"notdef"},
+{"id":4,"state":"notdef"},
+]
+
 
 
 
@@ -25,11 +33,24 @@ http.createServer(function (req, res) {
   
   switch (req.method) {
     case 'GET':
-     if (path.length == 2 && path[1] >= 1 && path[1] <= 8) {
-       res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
-      console.log('GET-methode');
-      console.log(path[1]);
-      res.end(JSON.stringify(light_state[(path[1])]));
+     if (path.length == 2) {
+       if (path[0] == "lounge" && path[1] >= 1 && path[1] <= 8) {
+         res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
+         console.log('GET-methode');
+         console.log(path[0]);
+         console.log(path[1]);
+         res.end(JSON.stringify(light_state[(path[1])]));
+       } else if (path[0] == "power" && path[1] >= 1 && path[1] <= 4) {
+         res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
+         console.log('GET-methode');
+         console.log(path[0]);
+         console.log(path[1]);
+         res.end(JSON.stringify(power_state[(path[1])]));
+       } else {
+         res.statusCode = 404;
+         res.end('not found');
+         break;
+       } 
      } else {
         res.statusCode = 404;
         res.end('not found');
@@ -37,12 +58,21 @@ http.createServer(function (req, res) {
       }
       break;
     case 'PUT':
-      if (path.length == 2 && path[1] >= 1 && path[1] <= 8) {
-        res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
-        sendUDP(path[1],req);
-        res.end();
-
-      } else {
+      if (path.length == 2) {
+        if (path[0] == "lounge" && path[1] >= 1 && path[1] <= 8) {
+          res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
+          sendUDP(path[1],req);
+          res.end();
+        } else if (path[0] == "power" && path[1] >= 1 && path[1] <= 4) {
+          res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
+          sendUDPPower(path[1],req);
+          res.end();
+        } else {
+          res.statusCode = 404;
+          res.end('not found');
+          break;
+        } 
+      }else {
         res.statusCode = 404;
         res.end('not found');
         break;
@@ -152,5 +182,34 @@ sendUDP = function (id, state) {
   });
 }
 
+sendUDPPower = function (id, state) {
+  var state_old = 0;
+  var id_old = 0;
+  if (id == 1) id_old = 140;
+  else if (id == 2) id_old = 141;
+  else if (id == 3) id_old = 142;
+  else if (id == 4) id_old = 143;
+
+
+  //console.log(state);
+  state.on('data', function (data) {
+    //console.log(data);
+    //console.log(data.toString);
+    var obj = JSON.parse(data);
+    console.log(obj);
+    if (obj.state == 'on') {
+      state_old = 1;
+    }
+  
+    if (state_old == 1) {
+      power_state[id].state = 'on'
+    } else {
+      power_state[id].state = 'off'
+	}
+
+    var packet = new Buffer([0xA5,0x5A,id_old,state_old]);
+//    client.send(packet, 0, 4, 1337, 'licht.shack', function(err, bytes) { console.log(err) });
+  });
+}
 
 
