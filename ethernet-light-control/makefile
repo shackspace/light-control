@@ -77,13 +77,13 @@ OPT = s
 
 # If there is more than one source file, append them above, or modify and
 # uncomment the following:
-SRC =  main.c usart.c stack.c timer.c cmd.c base64.c
+SRC =  main.c usart.c stack.c timer.c cmd.c
 
 SRC += networkcard/enc28j60.c networkcard/rtl8019.c
 
-SRC += httpd.c telnetd.c wol.c
+SRC += telnetd.c wol.c
 
-SRC += http_get.c analog.c
+SRC += analog.c
 
 SRC += camera/cam.c camera/servo.c
 

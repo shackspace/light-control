@@ -31,7 +31,6 @@
 #include <avr/eeprom.h>
 #include "usart.h"
 #include "stack.h"
-#include "httpd.h"
 #include "wol.h"
 #include "timer.h"
 #include "dnsc.h"

@@ -111,17 +111,6 @@
 	//2 = 640x480 Pixel länger (dauert zu lang!)
 	#define CAM_RESOLUTION	0
 	
-	//Webserver mit Passwort? (0 == mit Passwort)
-	#define HTTP_AUTH_DEFAULT	0
-	
-	//AUTH String "USERNAME:PASSWORT" max 14Zeichen 
-	//für Username:Passwort
-	#define HTTP_AUTH_STRING "admin:uli1"
-    //#define HTTP_AUTH_STRING "user:pass"
-	
-    //Empfang von Wetterdaten auf der Console (über HTTP_GET)
-    #define GET_WEATHER     0
-    
     //Commandos und Ausgaben erfolgen über Telnet
     #define CMD_TELNET      0
     

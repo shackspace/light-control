@@ -30,11 +30,8 @@
 #include "stack.h"
 #include "timer.h"
 #include "wol.h"
-#include "httpd.h"
 #include "cmd.h"
 #include "telnetd.h"
-#include "base64.h"
-#include "http_get.h"
 #include "analog.h"
 #include "camera/cam.h"
 #include "camera/servo.h"
@@ -75,9 +72,6 @@ int main(void)
 	
 	//Applikationen starten
 	stack_init();
-	#if USE_HTTPD
-		httpd_init();
-	#endif   
 	#if USE_TELNETD
 		telnetd_init();
 	#endif
@@ -164,11 +158,6 @@ int main(void)
 			usart_status.usart_ready =0;
 		}
 		
-        //Wetterdaten empfangen (Testphase)
-        #if GET_WEATHER
-        http_request ();
-        #endif
-        
         //Rechner im Netzwerk aufwecken
         #if USE_WOL
         if (wol_enable == 1)

@@ -29,7 +29,6 @@
 
 #include <avr/pgmspace.h>
 #include "usart.h"
-#include "httpd.h"
 #include "telnetd.h"
 #include "networkcard/enc28j60.h"
 #include "networkcard/rtl8019.h"

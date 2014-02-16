@@ -26,7 +26,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
-#include "httpd.h" //für Variablen Array
 
 #if USE_ADC
 volatile unsigned char channel = 0;
