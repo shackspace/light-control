@@ -90,18 +90,6 @@
 	//Baudrate der seriellen Schnittstelle
 	#define BAUDRATE 9600
 	
-	//Kamera mit einbinden
-	//Kamera arbeitet nur mit einem 14,7456Mhz Quarz!
-	#define USE_CAM			0
-	#define USE_SERVO		0
-	//In cam.c können weitere Parameter eingestellt werde
-	//z.B. Licht, Kompression usw.
-	//Auflösungen
-	//0 = 160x120 Pixel kürzer (zum testen OK ;-)
-	//1 = 320x240 Pixel ca. 10 Sek. bei einem Mega644
-	//2 = 640x480 Pixel länger (dauert zu lang!)
-	#define CAM_RESOLUTION	0
-	
     //Commandos und Ausgaben erfolgen über Telnet
     #define CMD_TELNET      0
     

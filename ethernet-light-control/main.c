@@ -31,8 +31,6 @@
 #include "timer.h"
 #include "cmd.h"
 #include "telnetd.h"
-#include "camera/cam.h"
-#include "camera/servo.h"
 #include <avr/eeprom.h>
 #include <util/delay.h>
 #include "dhcpc.h"
@@ -51,10 +49,6 @@ int main(void)
 	//DDRA = OUTA;
 	//DDRC = OUTC;
 	DDRD = OUTD;
-	
- 	#if USE_SERVO
-		servo_init ();
-	#endif //USE_SERVO
 	
     usart_init(BAUDRATE); // setup the UART
 	
@@ -82,12 +76,6 @@ int main(void)
 	//Globale Interrupts einschalten
 	sei(); 
 	
-	#if USE_CAM
-	for(a=0;a<2000000;a++){asm("nop");};
-	cam_init();
-	max_bytes = cam_picture_store(CAM_RESOLUTION);
-	#endif //USE_CAM
-
     #if USE_ENOCEAN
 		enocean_netInit();
 	#endif

@@ -83,8 +83,6 @@ SRC += networkcard/enc28j60.c networkcard/rtl8019.c
 
 SRC += telnetd.c
 
-SRC += camera/cam.c camera/servo.c
-
 SRC += dnsc.c dhcpc.c
 
 SRC += enocean.c can2udp.c shackbus.c fifo.c canframestorage.c

@@ -86,16 +86,14 @@ void usart_write_char(char c)
     }
     return;
 #else
-    #if !USE_CAM
-        if(!usart_status.usart_disable)
-        {
-            //Warten solange bis Zeichen gesendet wurde
-            while(!(USR & (1<<UDRE)));
-            //Ausgabe des Zeichens
-            UDR = c;
-        }
-        return;
-    #endif //USE_CAM
+    if(!usart_status.usart_disable)
+    {
+        //Warten solange bis Zeichen gesendet wurde
+        while(!(USR & (1<<UDRE)));
+        //Ausgabe des Zeichens
+        UDR = c;
+    }
+    return;
 #endif
 }
 
@@ -199,8 +197,6 @@ void usart_write_str(char *str)
 
 //----------------------------------------------------------------------------
 //Empfang eines Zeichens
-#if !USE_CAM
-
 #if defined (__AVR_ATmega328P__)
 	ISR (USART_RX_vect)
 #else
@@ -258,6 +254,5 @@ void usart_write_str(char *str)
 	}
 	return;
 }
-#endif //USE_CAM
 
 
