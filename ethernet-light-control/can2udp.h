@@ -29,8 +29,9 @@
 	void can2udp_tick(void);
 	void can2udp_tick_10ms(void);
 	void can2udp_packet_send(uint8_t addr, uint8_t status);
-
 	void can2udp(can_t *msg);
+	void can_t_2_can_frame_t(can_t* a, can_frame_t* b);
+	void can_frame_t_2_can_t(can_frame_t* a, can_t* b);
 
 	typedef struct
 	{
