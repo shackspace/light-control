@@ -30,8 +30,6 @@
 	void can2udp_tick_10ms(void);
 	void can2udp_packet_send(uint8_t addr, uint8_t status);
 	void can2udp(can_t *msg);
-	void can_t_2_can_frame_t(can_t* a, can_frame_t* b);
-	void can_frame_t_2_can_t(can_frame_t* a, can_t* b);
 
 	typedef struct
 	{
@@ -41,6 +39,9 @@
 		uint8_t tmp[2];
 		uint8_t data[8];  //data
 	} can_frame_t;
+
+	void can_t_2_can_frame_t(can_t* a, can_frame_t* b);
+	void can_frame_t_2_can_t(can_frame_t* a, can_t* b);
 
 	/* special address description flags for the CAN_ID */
 	#define CAN_EFF_FLAG 0x80000000U /* EFF/SFF is set in the MSB */
