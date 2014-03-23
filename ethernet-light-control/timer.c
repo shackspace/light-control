@@ -41,10 +41,6 @@
 volatile unsigned long time;
 volatile unsigned long time_watchdog = 0;
 
-volatile uint8_t key_state = 0;                                // debounced and inverted key state:
-volatile uint8_t key_press = 0;                                // key press detect
-
-
 
 
 //----------------------------------------------------------------------------
@@ -113,17 +109,6 @@ return;
 	{
 		prescaler_10ms = 1;
 
-
-		static uint8_t ct0, ct1;
-		uint8_t i;
-		 
-		 
-		i = key_state ^ ~PINC;                            // key changed ?
-		ct0 = ~( ct0 & i );                             // reset or count ct0
-		ct1 = ct0 ^ (ct1 & i);                          // reset or count ct1
-		i &= ct0 & ct1;                                 // count until roll over ?
-		key_state ^= i;                                 // then toggle debounced state
-		key_press |= key_state & i;                     // 0->1: key press detect
 
 		#if USE_CAN2UDP
 			can2udp_tick_10ms();

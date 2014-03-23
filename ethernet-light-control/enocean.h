@@ -29,11 +29,6 @@
 	void enocean_packet_send(uint8_t addr, uint8_t status);
 	void power_packet_send(uint8_t addr, uint8_t status);
 
-
-
-
-	extern volatile uint8_t key_state;
-	extern volatile uint8_t key_press;
  
 
 #endif
