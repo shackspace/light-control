@@ -52,10 +52,6 @@ uint8_t licht_status[12];
 
 uint8_t power_status[4];
 
-
-enum hauptschalter_states {INIT, OFF, ON, OFF_WAIT};
-enum hauptschalter_states hauptschalter_status;
-
 uint8_t blinker;
 uint8_t blinker_cnt;
 
@@ -121,10 +117,6 @@ void enocean_init(void) {
 	{
 		power_status[i] = 0;
 	}
-
-	hauptschalter_status = INIT;
-
-
 
 
  return;
