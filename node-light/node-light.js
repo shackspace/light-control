@@ -86,6 +86,8 @@ http.createServer(function (req, res) {
   
     }).listen(8080);
     console.log('Server running at Port 8080');
+//    }).listen(4080); //kiosk
+//    console.log('Server running at Port 4080'); //kiosk
 
 
 
@@ -107,6 +109,8 @@ socket.on("listening", function () {
 
 socket.bind(2342, function() {
   console.log('server listing on 2342');
+//socket.bind(2341, function() { //kiosk
+//  console.log('server listing on 2341'); //kiosk
 
 });
 
