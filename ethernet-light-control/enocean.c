@@ -58,44 +58,42 @@ uint8_t blinker_cnt;
 uint32_t remote_ip = IP(0,0,0,0);
 uint32_t remote_ip_openhab = IP(0,0,0,0);
 
+//internal function prototyps
+void send_udp_msg(uint8_t addr, uint8_t cmd);
+void shackbus_main(void);
+void change_light_state(uint8_t addr, uint8_t state);
+
 
 // ----------------------------------------------------------------------------
 // initialization of network settings
-void enocean_netInit(void) {
+void enocean_netInit(void)
+{
+	// calculate broadcast adress
+	*((uint32_t*)broadcast_ip) = (((*((unsigned long*)myip)) & (*((uint32_t*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
 
+	// remove any existing app from port
+	kill_udp_app(enocean_port);
+	// add port to stack with callback
+	add_udp_app(enocean_port, (void(*)(unsigned char))enocean_get);
 
- // calculate broadcast adress
- *((uint32_t*)broadcast_ip) = (((*((unsigned long*)myip)) & (*((uint32_t*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
+	// remote_ip = IP(10,42,3,176);
+	remote_ip = IP(10,42,0,111);
+	// remote_ip = IP(192,168,2,100);
+	// remote_ip = IP(192,168,2,100);
 
- // remove any existing app from port
- kill_udp_app(enocean_port);
- // add port to stack with callback
- add_udp_app(enocean_port, (void(*)(unsigned char))enocean_get);
-
-// remote_ip = IP(10,42,3,176);
- remote_ip = IP(10,42,0,111);
-// remote_ip = IP(192,168,2,100);
-
-// remote_ip = IP(192,168,2,100);
-
-remote_ip_openhab = IP(10,42,0,117);
-
-
+	remote_ip_openhab = IP(10,42,0,117);
 }
 
 
-
-
 // ----------------------------------------------------------------------------
-// initialization of Art-Net
-void enocean_init(void) {
-
- // read Art-Net port
- eeprom_read_block(&enocean_port, (unsigned char *)ENOCEAN_PORT_EEPROM_STORE, 2);
- if (enocean_port == 0xFFFF) {
-  enocean_port = PORT_DEFAULT;
- }
-
+// initialization of enocean
+void enocean_init(void)
+{
+	// read Art-Net port
+	eeprom_read_block(&enocean_port, (unsigned char *)ENOCEAN_PORT_EEPROM_STORE, 2);
+	if (enocean_port == 0xFFFF) {
+		enocean_port = PORT_DEFAULT;
+	}
 
 	DDRD  |= 0xF8;	//PD4-PD7 = LEDs  PD3 = Hauptschalter LED
 	PORTD &= 0x07;
@@ -111,21 +109,19 @@ void enocean_init(void) {
 		{
 			licht_status[i] = 0;
 		}
-
 	}
+
 	for (uint8_t i = 0; i < 4; i++)
 	{
 		power_status[i] = 0;
 	}
 
-
- return;
+	return;
 }
 
 
 void send_udp_msg(uint8_t addr, uint8_t cmd)
 {
-
 	if (addr >= 0 && addr < 12)
 	{
 		eth_buffer[UDP_DATA_START+0]=addr+20;
@@ -134,7 +130,6 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		create_new_udp_packet(2, 2342, 2342, remote_ip);
 		create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
 	}
-
 
 	if (addr >= 0 && addr <= 10)
 	{
@@ -170,11 +165,8 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 
 	}	
 
-
 	return;
 }
-
-
 
 
 void shackbus_main(void)
@@ -183,23 +175,22 @@ void shackbus_main(void)
 	if (can_check_message())
 	{
 		can_t msg;
-		
+
 		// Try to read the message
 		if (can_get_message(&msg))
 		{
-
-          shackbus_id_t shackbus_id;
-          shackbus_id2sb(&shackbus_id,msg);
-
-
+			shackbus_id_t shackbus_id;
+			shackbus_id2sb(&shackbus_id,msg);
 
 			can2udp(&msg); //msg an udp weiterleiten
 
-			//Wenn der Event über Can kommt dann per udp weiterleiten / brodcasten
-			send_udp_msg(msg.data[0], msg.data[1]);
-
-        }
-    }
+			/* Wenn der Event über Can kommt dann per udp weiterleiten / brodcasten */
+			if (shackbus_id.prot == 9 && msg.data[0]<12 )
+			{
+				send_udp_msg(msg.data[0], msg.data[1]);
+			}
+		}
+	}
 
 	if (blinker)
 	{
@@ -227,22 +218,21 @@ void shackbus_main(void)
 }
 
 
-void enocean_main(void) {
-
+void enocean_main(void)
+{
     shackbus_main();
 
-	for (uint8_t i = 0; i < 12; i++) {
-
+	for (uint8_t i = 0; i < 12; i++)
+	{
 		if (licht_status[i] & ENOCEAN_CHANNEL_ACT)
 		{
 			licht_status[i] &= ~ENOCEAN_CHANNEL_ACT;
 			enocean_packet_send(i,licht_status[i] & ENOCEAN_CHANNEL_STATUS);	
 		}
-	
 	}
 
-	for (uint8_t i = 0; i < 4; i++) {
-
+	for (uint8_t i = 0; i < 4; i++)
+	{
 		if (power_status[i] & ENOCEAN_CHANNEL_ACT)
 		{
 			power_status[i] &= ~ENOCEAN_CHANNEL_ACT;
@@ -250,32 +240,28 @@ void enocean_main(void) {
 		}
 	
 	}
-
-
 }
-
 
 
 void change_light_state(uint8_t addr, uint8_t state)
 {
-			licht_status[addr] |= ENOCEAN_CHANNEL_ACT;
-			if (state==0)
-				licht_status[addr] &= ~ENOCEAN_CHANNEL_STATUS;
-			else	
-				licht_status[addr] |= ENOCEAN_CHANNEL_STATUS;
+	licht_status[addr] |= ENOCEAN_CHANNEL_ACT;
+	if (state==0)
+		licht_status[addr] &= ~ENOCEAN_CHANNEL_STATUS;
+	else	
+		licht_status[addr] |= ENOCEAN_CHANNEL_STATUS;
 }
 
 
 // ----------------------------------------------------------------------------
 // receive Art-Net packet
-void enocean_get(unsigned char index) {
-
+void enocean_get(unsigned char index)
+{
 	if(eth_buffer[UDP_DATA_START] == 0xA5 && eth_buffer[UDP_DATA_START+1] == 0x5A)
 	{
-
 		uint8_t addr   = eth_buffer[UDP_DATA_START+2];
 		uint8_t status = eth_buffer[UDP_DATA_START+3];
-		
+
 		if ((addr) < 12 && status <= 1)
 		{
 			if (addr == 0) change_light_state(0,status);
@@ -290,20 +276,13 @@ void enocean_get(unsigned char index) {
 			if (addr == 6) change_light_state(9,status);
 			if (addr == 7) change_light_state(10,status);
 		}
+
 		if ((addr) >= 20 && (addr) <= 30 && status <= 1)
 		{
-			if (addr == 20) change_light_state(0,status);
-			if (addr == 21) change_light_state(1,status);
-			if (addr == 22) change_light_state(2,status);
-			if (addr == 23) change_light_state(3,status);
-			if (addr == 24) change_light_state(4,status);
-			if (addr == 25) change_light_state(5,status);
-			if (addr == 26) change_light_state(6,status);
-			if (addr == 27) change_light_state(7,status);
-			if (addr == 28) change_light_state(8,status);
-			if (addr == 29) change_light_state(9,status);
-			if (addr == 30) change_light_state(10,status);
+			addr = addr - 20;			
+			change_light_state(addr,status);
 		}
+
 		if ((addr) >= 140 && (addr) <= 143 && status <= 1)
 		{
 			addr = addr - 140;			
@@ -313,26 +292,22 @@ void enocean_get(unsigned char index) {
 			else	
 				power_status[addr] |= ENOCEAN_CHANNEL_STATUS;
 		}
-		
-
-
 	}
 }
 
+
 // ----------------------------------------------------------------------------
 // Called by timer, check changes
-void enocean_tick(void) {
-
+void enocean_tick(void)
+{
 	static uint8_t counter = 1;
-	
+
 	if (!counter--)
 	{
 		blinker ^= 1;
 		counter=0;
 		blinker_cnt++;
 	}
-
-
 
 	static uint8_t arp_in_request = 0;
 	if (arp_in_request) arp_in_request--;
@@ -421,9 +396,6 @@ void enocean_packet_send(uint8_t addr, uint8_t cmd)
 	can_send_message(&enocean_packet);
 	can2udp(&enocean_packet);
 }
-
-
-
 
 
 #endif
