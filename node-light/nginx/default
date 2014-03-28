@@ -1,0 +1,27 @@
+#configfile
+# /etc/nginx/sites-enabled/default
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server ipv6only=on;
+
+	root /usr/share/nginx/html;
+	index index.html index.htm;
+
+	server_name openhab.shack;
+
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ /index.html;
+	}
+
+	location /lounge/ {
+		proxy_pass http://localhost:8080/lounge/;
+	}
+	location /power/ {
+		proxy_pass http://localhost:8080/power/;
+	}
+}
+
+

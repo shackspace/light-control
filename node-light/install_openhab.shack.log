@@ -1,0 +1,33 @@
+sudo apt-get update
+sudo apt-get upgrade
+#install nodejs
+sudo apt-get install g++ curl libssl-dev apache2-utils git-core joe make
+cd /opt
+sudo mkdir node
+sudo chown -c ulrich /opt/node/
+cd node
+git clone https://github.com/joyent/node.git
+cd node
+./configure
+make
+sudo make install
+#configure
+sudo mkdir /opt/node-light
+sudo chown -c ulrich /opt/node-light/
+cp node-light/node-light.js /opt/node-light/
+sudo cp node-light/etc/init.d/node-light /etc/init.d/
+ls -l /etc/init.d/node-light 
+sudo update-rc.d node-light defaults
+sudo /etc/init.d/node-light start
+/etc/init.d/node-light status
+sudo /etc/init.d/node-light stop
+
+sudo apt-get install htop
+htop
+
+#install nginx
+sudo apt-get install nginx
+sudo joe /etc/nginx/sites-enabled/default 
+sudo nginx -s reload
+sudo joe /usr/share/nginx/html/index.html 
+
