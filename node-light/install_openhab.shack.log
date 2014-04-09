@@ -31,3 +31,7 @@ sudo joe /etc/nginx/sites-enabled/default
 sudo nginx -s reload
 sudo joe /usr/share/nginx/html/index.html 
 
+#06.04.2014
+sudo apt-get update
+sudo apt-get upgrade
+
