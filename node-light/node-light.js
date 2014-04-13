@@ -1,105 +1,75 @@
-var http  = require('http');
-var url   = require('url');
 var dgram = require('dgram');
 var fs    = require('fs');
+var nconf = require('nconf');
+var express = require('express');
+var app = express();
 
-var light_state = [
-{},
-{"id":1,"state":"notdef"},
-{"id":2,"state":"notdef"},
-{"id":3,"state":"notdef"},
-{"id":4,"state":"notdef"},
-{"id":5,"state":"notdef"},
-{"id":6,"state":"notdef"},
-{"id":7,"state":"notdef"},
-{"id":8,"state":"notdef"}
-]
-
-var power_state = [
-{},
-{"id":1,"state":"notdef"},
-{"id":2,"state":"notdef"},
-{"id":3,"state":"notdef"},
-{"id":4,"state":"notdef"},
-]
+nconf.file({file: require('path').resolve(__dirname, 'storage.json') });
+var light_state = nconf.get('light_state');
+var power_state = nconf.get('power_state');
 
 
+app.use(require('body-parser').json());
 
+app.all('*', function(req, res, next) {
+	res.set({'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
+	console.log(req.method + ' ' + req.url);
+	next();
+});
 
+app.all('/power/haupt'     , function(req, res) {	res.redirect(307,'1'); });
+app.all('/power/dusche'    , function(req, res) {	res.redirect(307,'2'); });
+app.all('/power/warmwasser', function(req, res) {	res.redirect(307,'3'); });
+app.all('/power/or'        , function(req, res) {	res.redirect(307,'4'); });
+app.all('/power/kueche'    , function(req, res) {	res.redirect(307,'5'); });
 
-http.createServer(function (req, res) {
-  var urlObj = url.parse(req.url);
-  var path = urlObj.pathname.substr(1).split('/');
-  
-  switch (req.method) {
-    case 'GET':
-     if (path.length == 2) {
-       if (path[0] == "lounge" && path[1] >= 1 && path[1] <= 8) {
-         res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
-         console.log('GET-methode');
-         console.log(path[0]);
-         console.log(path[1]);
-         res.end(JSON.stringify(light_state[(path[1])]));
-       } else if (path[0] == "power" && path[1] >= 1 && path[1] <= 4) {
-         res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
-         console.log('GET-methode');
-         console.log(path[0]);
-         console.log(path[1]);
-         res.end(JSON.stringify(power_state[(path[1])]));
-       } else {
-         res.statusCode = 404;
-         res.end('not found');
-         break;
-       } 
-     } else {
-        res.statusCode = 404;
-        res.end('not found');
-        break;
-      }
-      break;
-    case 'PUT':
-      if (path.length == 2) {
-        if (path[0] == "lounge" && path[1] >= 1 && path[1] <= 8) {
-          res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
-          sendUDP(path[1],req);
-          res.end();
-        } else if (path[0] == "power" && path[1] >= 1 && path[1] <= 4) {
-          res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
-          sendUDPPower(path[1],req);
-          res.end();
-        } else {
-          res.statusCode = 404;
-          res.end('not found');
-          break;
-        } 
-      }else {
-        res.statusCode = 404;
-        res.end('not found');
-        break;
-      }
-      break;
+app.get(/^\/lounge\/([1-8])$/, function(req, res) {
+	res.send(JSON.stringify(light_state[(req.params[0])]));
+});
+app.put(/^\/lounge\/([1-8])$/, function(req, res) {
+    res.end();
+	console.log('state='+ req.body.state);
+    sendUDP(req.params[0],req.body.state);
+});
 
-    default:
-      res.statusCode = 405;
-      res.end('Method not allowed');
-  }
-  
-    }).listen(8080);
-    console.log('Server running at Port 8080');
-//    }).listen(4080); //kiosk
-//    console.log('Server running at Port 4080'); //kiosk
+app.get(/^\/power\/([1-5])$/, function(req, res) {
+	res.send(JSON.stringify(power_state[(req.params[0])]));
+});
+app.put(/^\/power\/([1-5])$/, function(req, res) {
+    res.end();
+	console.log('state='+ req.body.state);
+    sendUDPPower(req.params[0],req.body.state);
+});
+
+app.all('*', function(req, res) {
+	res.send(405, 'Method not allowed');
+	console.log('/: 405');
+});
+
+app.listen(8080);
+console.log('Server started on port 8080');
 
 
 
-
-
+function exitHandler(options, err) {
+	console.log('\n Start exithandler()');
+	nconf.set('light_state',light_state);
+	nconf.set('power_state',power_state);
+	nconf.save();
+	console.log('successfull Good Bye');
+    if (options.exit) process.exit();
+}
+//catches ctrl+c event
+process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+//catches uncaught exceptions
+process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
 
 
 
 var socket = dgram.createSocket('udp4');
 
 socket.on('message', function (data) {
-  receiveUDP(data);
+	receiveUDP(data);
 });
 
 socket.on("listening", function () {
@@ -109,111 +79,65 @@ socket.on("listening", function () {
 
 socket.bind(2342, function() {
   console.log('server listing on 2342');
-//socket.bind(2341, function() { //kiosk
-//  console.log('server listing on 2341'); //kiosk
-
 });
 
 
 receiveUDP = function (data) {
-  if (data.length == 2 && data[0] == 0 && data[1] == 0)
-    light_state[1].state = 'off'
-  if (data.length == 2 && data[0] == 0 && data[1] == 1)
-    light_state[1].state = 'on'
-  if (data.length == 2 && data[0] == 1 && data[1] == 0)
-    light_state[2].state = 'off'
-  if (data.length == 2 && data[0] == 1 && data[1] == 1)
-    light_state[2].state = 'on'
-  if (data.length == 2 && data[0] == 2 && data[1] == 0)
-    light_state[3].state = 'off'
-  if (data.length == 2 && data[0] == 2 && data[1] == 1)
-    light_state[3].state = 'on'
-  if (data.length == 2 && data[0] == 3 && data[1] == 0)
-    light_state[4].state = 'off'
-  if (data.length == 2 && data[0] == 3 && data[1] == 1)
-    light_state[4].state = 'on'
-  if (data.length == 2 && data[0] == 7 && data[1] == 0)
-    light_state[5].state = 'off'
-  if (data.length == 2 && data[0] == 7 && data[1] == 1)
-    light_state[5].state = 'on'
-  if (data.length == 2 && data[0] == 4 && data[1] == 0)
-    light_state[6].state = 'off'
-  if (data.length == 2 && data[0] == 4 && data[1] == 1)
-    light_state[6].state = 'on'
-  if (data.length == 2 && data[0] == 5 && data[1] == 0)
-    light_state[7].state = 'off'
-  if (data.length == 2 && data[0] == 5 && data[1] == 1)
-    light_state[7].state = 'on'
-  if (data.length == 2 && data[0] == 6 && data[1] == 0)
-    light_state[8].state = 'off'
-  if (data.length == 2 && data[0] == 6 && data[1] == 1)
-    light_state[8].state = 'on'
-  //console.log(data);
-  //console.log(data[0]);
-  //console.log(data[1]);
-  //console.log(light_state);
+	light_lut = new Array(1,2,3,4,6,7,8,5);
+	light_lut_state = new Array('off','on');
+
+	if (data.length == 2 && data[0] <= light_lut.length && data[1] <= 1) {
+		light_state[(light_lut[(data[0])])].state = light_lut_state[(data[1])];
+		console.log('receiveUDP: ' + data[0] + ' => ' + light_lut[(data[0])] + ' ' + data[1] + ' => ' + light_lut_state[(data[1])] );
+	}
 }
 
 
 var client = dgram.createSocket('udp4');
 
-
 sendUDP = function (id, state) {
-  var state_old = 0;
-  var id_old = 0;
-  if (id == 1) id_old = 0;
-  else if (id == 2) id_old = 1;
-  else if (id == 3) id_old = 2;
-  else if (id == 4) id_old = 3;
-  else if (id == 5) id_old = 7;
-  else if (id == 6) id_old = 4;
-  else if (id == 7) id_old = 5;
-  else if (id == 8) id_old = 6;
+	var state_old = -1;
+	var id_old = 0;
+	if (id == 1) id_old = 0;
+	else if (id == 2) id_old = 1;
+	else if (id == 3) id_old = 2;
+	else if (id == 4) id_old = 3;
+	else if (id == 5) id_old = 7;
+	else if (id == 6) id_old = 4;
+	else if (id == 7) id_old = 5;
+	else if (id == 8) id_old = 6;
 
+	if (typeof(state) == 'undefined') {}	
+	else if (state == 'on') {  state_old = 1; }
+	else if (state == 'off') { state_old = 0; }
 
-
-  //console.log(state);
-  state.on('data', function (data) {
-    //console.log(data);
-    //console.log(data.toString);
-    var obj = JSON.parse(data);
-    //console.log(obj);
-    if (obj.state == 'on') {
-      state_old = 1;
-    }
-    var packet = new Buffer([0xA5,0x5A,id_old,state_old]);
-    client.send(packet, 0, 4, 1337, 'licht.shack', function(err, bytes) { console.log(err) });
-  });
+	if (state_old != -1) {
+		var packet = new Buffer([0xA5,0x5A,id_old,state_old]);
+		client.send(packet, 0, 4, 1337, 'licht.shack', function(err, bytes) { console.log(err) });
+	}
 }
 
 sendUDPPower = function (id, state) {
-  var state_old = 0;
-  var id_old = 0;
-  if (id == 1) id_old = 140;
-  else if (id == 2) id_old = 141;
-  else if (id == 3) id_old = 142;
-  else if (id == 4) id_old = 143;
+	var state_old = 0;
+	var id_eltako = 0
+	if (id == 1) id_eltako = 120;
+	if (id == 2) id_eltako = 140;
+	if (id == 3) id_eltako = 141;
+	if (id == 4) id_eltako = 142;
+	if (id == 5) id_eltako = 143;
 
+	console.log('sendUDP: ' + state);
+	if (typeof(state) == 'undefined') {}	
+	else if (state == 'on')  { state_old = 1; }
+	else if (state == 'off') { state_old = 0; }
 
-  //console.log(state);
-  state.on('data', function (data) {
-    //console.log(data);
-    //console.log(data.toString);
-    var obj = JSON.parse(data);
-    console.log(obj);
-    if (obj.state == 'on') {
-      state_old = 1;
-    }
-  
-    if (state_old == 1) {
-      power_state[id].state = 'on'
-    } else {
-      power_state[id].state = 'off'
+    if (state_old == 1) { power_state[id].state = 'on' }
+    if (state_old == 0) { power_state[id].state = 'off'}
+
+	if (state_old != -1) {
+		var packet = new Buffer([0xA5,0x5A,id_eltako,state_old]);
+		client.send(packet, 0, 4, 1337, 'licht.shack', function(err, bytes) { console.log(err) });
 	}
-
-    var packet = new Buffer([0xA5,0x5A,id_old,state_old]);
-//    client.send(packet, 0, 4, 1337, 'licht.shack', function(err, bytes) { console.log(err) });
-  });
 }
 
 

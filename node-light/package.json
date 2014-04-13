@@ -1,0 +1,17 @@
+{
+  "name": "node-light",
+  "version": "0.0.1",
+  "description": "Readme ======",
+  "main": "node-light.js",
+  "dependencies": {
+    "express": "~4.0.0",
+    "body-parser": "~1.0.1",
+    "nconf": "~0.6.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shackspace/light-control"
+  },
+  "author": "ulrich",
+  "readmeFilename": "README.md"
+}

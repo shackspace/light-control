@@ -1,0 +1,60 @@
+{
+  "light_state": [
+    {},
+    {
+      "id": 1,
+      "state": "notdef"
+    },
+    {
+      "id": 2,
+      "state": "notdef"
+    },
+    {
+      "id": 3,
+      "state": "notdef"
+    },
+    {
+      "id": 4,
+      "state": "notdef"
+    },
+    {
+      "id": 5,
+      "state": "notdef"
+    },
+    {
+      "id": 6,
+      "state": "notdef"
+    },
+    {
+      "id": 7,
+      "state": "notdef"
+    },
+    {
+      "id": 8,
+      "state": "notdef"
+    }
+  ],
+  "power_state": [
+    {},
+    {
+      "id": 1,
+      "state": "notdef"
+    },
+    {
+      "id": 2,
+      "state": "notdef"
+    },
+    {
+      "id": 3,
+      "state": "notdef"
+    },
+    {
+      "id": 4,
+      "state": "notdef"
+    },
+    {
+      "id": 5,
+      "state": "notdef"
+    }
+  ]
+}
