@@ -151,23 +151,8 @@ void shackbus_main(void)
 		// Try to read the message
 		if (can_get_message(&msg))
 		{
-			if (msg.id == 0x1FF && msg.flags.extended == 1)
-			{
-				led_set(99,0);
-			}
 			shackbus_id_t shackbus_id;
 			shackbus_id2sb(&shackbus_id,msg);
-
-			//send_msg_blink.id = (((((((3<<3)+4L) <<4)+5L) <<8)+6L) <<8)+9;  //Absender = 2   Empfänger = 1
-
-			if (shackbus_id.prot == 9 && shackbus_id.dst == 6 && msg.data[0]<12)
-			{
-                		if (msg.data[1]==1) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_SS);
-                		if (msg.data[1]==0) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_CS);
-
-				//Send the new message
-				//shackbus_send_msg(msg.data[0], msg.data[1]);
-			}
 
 			//prot=10 = Basis IO data[0]=10 = Ping
 			if (shackbus_id.prot == 10 && shackbus_id.dst == 6 && msg.data[0]==10)
