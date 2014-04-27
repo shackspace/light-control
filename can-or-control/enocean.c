@@ -34,7 +34,7 @@ void enocean_init(void) {
 	{
 		enocean_channel_state[i] = 0;
 
-		enocean_channel_state[i] = eeprom_read_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i);	
+		enocean_channel_state[i] = eeprom_read_byte((unsigned char *)ENOCEAN_CHANNEL_EEPROM_STORE+i);	
 
 		if (enocean_channel_state[i] == 0xFF)
 		{
@@ -64,7 +64,7 @@ void enocean_main(void) {
 		if (enocean_channel_state[i] & ENOCEAN_CHANNEL_EEPROM)
 		{
 			enocean_channel_state[i] &= ~ENOCEAN_CHANNEL_EEPROM;
-			eeprom_write_byte((unsigned char *)ENOCEAN_LICHT_EEPROM_STORE+i, enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);	
+			eeprom_write_byte((unsigned char *)ENOCEAN_CHANNEL_EEPROM_STORE+i, enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);	
 		}
 	
 	}
