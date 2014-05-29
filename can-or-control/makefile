@@ -91,6 +91,8 @@ SRC += fifo.c uart.c enocean_parser.c hmi.c
 
 SRC += shackbus.c
 
+SRC += power_mgt.c
+
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
 # will not be considered source files but generated files (assembler

@@ -35,6 +35,10 @@
 	#include "hmi.h"
 #endif //USE_HMI
 
+#if USE_POWER_MGT
+	#include "power_mgt.h"
+#endif //USE_POWER_MGT
+
 #if USE_SHACKBUS
 	#include "shackbus.h"
 #endif //USE_SHACKBUS
@@ -150,6 +154,10 @@ return;
 		#if USE_HMI
 			hmi_tick();
 		#endif //USE_HMI
+		
+		#if USE_POWER_MGT
+			power_mgt_tick();
+		#endif //USE_POWER_MGT
 		
 		#if USE_SHACKBUS
 			shackbus_tick();

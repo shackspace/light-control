@@ -17,6 +17,9 @@
 	//HMI
 	#define USE_HMI 0
 
+	//POWER_MGT
+	#define USE_POWER_MGT 1
+
 	//ENOCEANPARSER
 	#define USE_ENOCEAN_PARSER 0
 

@@ -37,7 +37,7 @@
 #include "uart.h"
 #include "enocean_parser.h"
 #include "hmi.h"
-
+#include "power_mgt.h"
 
 #include "shackbus.h"
 
@@ -70,6 +70,10 @@ int main(void)
 		shackbus_init();
 	#endif
 
+	#if USE_POWER_MGT
+		power_mgt_init();
+	#endif
+
 	//Globale Interrupts einschalten
 	sei(); 
 
@@ -89,6 +93,12 @@ int main(void)
 		#if USE_HMI
 			cli();
 			hmi_main();
+			sei();
+		#endif
+		
+		#if USE_POWER_MGT
+			cli();
+			power_mgt_main();
 			sei();
 		#endif
 		
