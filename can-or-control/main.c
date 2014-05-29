@@ -81,15 +81,21 @@ int main(void)
 		wdt_reset();
 
 		#if USE_ENOCEAN
+			cli();
 			enocean_main();
+			sei();
 		#endif
 		
 		#if USE_HMI
+			cli();
 			hmi_main();
+			sei();
 		#endif
 		
 		#if USE_SHACKBUS
+			cli();
 			shackbus_main();
+			sei();
 		#endif
 
 		#if USE_ENOCEAN_PARSER
