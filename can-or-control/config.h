@@ -15,7 +15,7 @@
 	#define USE_ENOCEAN 1
 
 	//HMI
-	#define USE_HMI 1
+	#define USE_HMI 0
 
 	//ENOCEANPARSER
 	#define USE_ENOCEAN_PARSER 0
