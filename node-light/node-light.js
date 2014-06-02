@@ -14,7 +14,6 @@ app.use(require('body-parser').json());
 app.all('*', function(req, res, next) {
 	res.set({'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
 	res.set({'Access-Control-Allow-Origin': '*'});
-	res.set({'Access-Control-Allow-Headers': 'access-control-allow-origin, Content-Type, X-Requested-With'});	res.set({'Access-Control-Allow-Methods': 'GET,PUT'});
 	console.log(req.method + ' ' + req.url);
 	next();
 });
@@ -44,6 +43,8 @@ app.put(/^\/power\/([1-5])$/, function(req, res) {
 });
 
 app.options('*', function(req, res) {
+	res.set({'Access-Control-Allow-Headers': 'access-control-allow-origin, Content-Type, X-Requested-With'});
+	res.set({'Access-Control-Allow-Methods': 'GET,PUT'});
 	res.send(200);
 });
 
