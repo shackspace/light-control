@@ -25,6 +25,7 @@
 #include "config.h"
 #include "hmi.h"
 #include "enocean.h"
+#include "can.h"
 
 void shackbus_init(void);
 void shackbus_main(void);
@@ -40,6 +41,10 @@ typedef struct
 	uint8_t dst;  //DST 8bit
 	uint8_t prot; //prot 6bit
 } shackbus_id_t;
+
+uint8_t shackbus_id2sb(shackbus_id_t *shackbus, can_t msg);
+uint32_t shackbus_sb2id(shackbus_id_t *sb);
+
 
 /*
 Protokolle:
