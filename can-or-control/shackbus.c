@@ -73,14 +73,15 @@ void shackbus_init(void)
 
 
 	// Create a test messsage
-	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+9L);  //Absender = 2   Empfänger = 1
+
+	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+11L);  //Absender = 2   Empfänger = 1
 	send_msg_blink_ret.flags.rtr = 0;
 
 	send_msg_blink_ret.flags.extended = 1;
 
 	send_msg_blink_ret.length  = 3;
-	send_msg_blink_ret.data[0] = 3;
-	send_msg_blink_ret.data[1] = 1;
+	send_msg_blink_ret.data[0] = 0;
+	send_msg_blink_ret.data[1] = 0;
 	send_msg_blink_ret.data[2] = 0;
 
 
@@ -134,7 +135,7 @@ void shackbus_main(void)
 				msg.data[0] = 11;
 				msg.data[1] = msg.data[1];
 
-			    	//Send the new message
+				//Send the new message
 				can_send_message(&msg);
 			}
 
@@ -171,9 +172,10 @@ void shackbus_main(void)
 uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
 {
 	//Send the new message
-	send_msg_blink_ret.data[0]=val1;
-	send_msg_blink_ret.data[1]=val2;
-	send_msg_blink_ret.data[2]++;
+	send_msg_blink_ret.data[0]=1;
+	send_msg_blink_ret.data[1]=val1;
+	send_msg_blink_ret.data[2]=val2;
+
 	can_send_message(&send_msg_blink_ret);
 
 	return true;
