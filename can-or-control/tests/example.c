@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
 
@@ -10,9 +11,8 @@
 #include "../config.h"
 #include "../fifo.c"
 #include "../enocean.c"
-#include "../canframestorage.c"
 #include "../shackbus.c"
-#include "../stack.h"
+#include "../power_mgt.c"
 
 /* Declare a local suite. */
 SUITE(suite);
@@ -28,235 +28,261 @@ TEST fifo_case(void) {
 	PASS();
 }
 
-TEST canframestorage_case(void) {
-	canframestorage_init();
-	ASSERT(canframestorage_item_next() == 0);
-	canframestorage_data[0].state = 1;
+TEST uart_case(void) {
+	uart_init();
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+	uart_putc('A');
+	ASSERT(fifo_get_count(&uart_outfifo) == 1);
+	fifo_get(&uart_outfifo);
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+	PASS();
+}
 
-	int x;
-	for (x = 1; x < CANFRAMESTORAGE_DATA_SIZE; x++) {
-		int tmp = canframestorage_item_next();
-		canframestorage_data[tmp].state = 1;
-	}
+TEST enocean_case(void) {
+	uart_init();
+	enocean_init();
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+	enocean_main();
+	ASSERT(enocean_check_uart_output(140, 0) == true);
+	ASSERT(enocean_check_uart_output(141, 0) == true);
+	ASSERT(enocean_check_uart_output(142, 0) == true);
+	ASSERT(enocean_check_uart_output(143, 0) == true);
+	ASSERT(enocean_check_uart_output(0, 0) == false);
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
 
-	ASSERT(canframestorage_item_next() == 255);
+	enocean_main();
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
 
-	canframestorage_item_clear(5);
-	ASSERT(canframestorage_item_next() == 5);
+	enocean_state_set(0,1);
+	enocean_main();
+
+	ASSERT(enocean_check_uart_output(140, 1) == true);
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+
+	enocean_main();
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+
+	eeprom_write_byte( ENOCEAN_CHANNEL_EEPROM_STORE+0, 1);
+	eeprom_write_byte( ENOCEAN_CHANNEL_EEPROM_STORE+1, 255);
+	eeprom_write_byte( ENOCEAN_CHANNEL_EEPROM_STORE+3, 1);
+	enocean_init();
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+	enocean_main();
+	ASSERT(enocean_check_uart_output(140, 1) == true);
+	ASSERT(enocean_check_uart_output(141, 0) == true);
+	ASSERT(enocean_check_uart_output(142, 0) == true);
+	ASSERT(enocean_check_uart_output(143, 1) == true);
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
 
 	PASS();
 }
 
-TEST send_udp_msg_case(void) {
-	extern fifo_t eth_outfifo;	
-	void init_eth_mock(void);
-	void clean_eth_buffer(void);
+TEST shackbus_case(void) {
+	extern fifo_t can_outfifo;
+	extern fifo_t can_infifo;
+	shackbus_init();
+	can_mock_init();
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
+	shackbus_main();
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(0,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 20);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	shackbus_send_msg(123,132);
 
+	can_t send_msg_cmp;
+	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+11L);  //Absender = 2   Empfänger = 1
+	send_msg_cmp.flags.rtr = 0;
+	send_msg_cmp.flags.extended = 1;
+	send_msg_cmp.length  = 3;
+	send_msg_cmp.data[0]=1;
+	send_msg_cmp.data[1]=123;
+	send_msg_cmp.data[2]=132;
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(1,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 21);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	bool can_compare_sended(can_t msg);
+	ASSERT(can_compare_sended(send_msg_cmp));
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(2,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 22);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(3,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 23);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	uint8_t can_input_message(can_t *msg);
+	can_input_message(&send_msg_cmp);
+	ASSERT(can_check_message());
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 15);
+
+	shackbus_main();
+
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
+
+	printf("\n\n");
+
+	PASS();
+}
+
+TEST shackbus_ping_case(void) {
+	extern fifo_t can_outfifo;
+	extern fifo_t can_infifo;
+	shackbus_init();
+	can_mock_init();
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
+	shackbus_main();
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
+
+	can_t send_msg_cmp;
+	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(8L<<14)+(8L<<6)+10L);  //Absender = 2   Empfänger = 1
+	send_msg_cmp.flags.rtr = 0;
+	send_msg_cmp.flags.extended = 1;
+	send_msg_cmp.length  = 1;
+	send_msg_cmp.data[0]=10;
+	send_msg_cmp.data[1]=123;
+	send_msg_cmp.data[2]=132;
+
+	uint8_t can_input_message(can_t *msg);
+	can_input_message(&send_msg_cmp);
+	ASSERT(can_check_message());
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 15);
+
+	shackbus_main();
+
+	ASSERT(fifo_get_count(&can_outfifo) == 15);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(4,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 24);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 2);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(8L<<14)+(8L<<6)+10L);  //Absender = 2   Empfänger = 1
+	send_msg_cmp.length = 2;  //Absender = 2   Empfänger = 1
+	send_msg_cmp.data[0] = 11;
+	bool can_compare_sended(can_t msg);
+	ASSERT(can_compare_sended(send_msg_cmp));
+
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(5,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 25);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 3);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	PASS();
+}
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(6,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 26);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 4);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+TEST shackbus_channel_case(uint8_t channel) {
+	extern fifo_t can_outfifo;
+	extern fifo_t can_infifo;
+	uart_init();
+	enocean_mock_init();
+	enocean_init();
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+	enocean_main();
+	ASSERT(enocean_check_uart_output(140, 0) == true);
+	ASSERT(enocean_check_uart_output(141, 0) == true);
+	ASSERT(enocean_check_uart_output(142, 0) == true);
+	ASSERT(enocean_check_uart_output(143, 0) == true);
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(7,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 27);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 4);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	shackbus_init();
+	can_mock_init();
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
+	shackbus_main();
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
+
+	can_t send_msg_cmp;
+	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+11L);  //prio vlan src dst prot
+	send_msg_cmp.flags.rtr = 0;
+	send_msg_cmp.flags.extended = 1;
+	send_msg_cmp.length  = 3;
+	send_msg_cmp.data[0]=1;
+	send_msg_cmp.data[1]=140+channel;
+	send_msg_cmp.data[2]=1;
+
+	uint8_t can_input_message(can_t *msg);
+	can_input_message(&send_msg_cmp);
+	ASSERT(can_check_message());
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 15);
+
+	shackbus_main();
+
+	ASSERT(fifo_get_count(&can_outfifo) == 30);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(8,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 28);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 5);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(8L<<14)+(5L<<6)+11L);  //prio vlan src dst prot
+	send_msg_cmp.length = 3;  //Absender = 2   Empfänger = 1
+	send_msg_cmp.data[0] = 1;
+	send_msg_cmp.data[1]=140+channel;
+	send_msg_cmp.data[2]=1;
+	bool can_compare_sended(can_t msg);
+	ASSERT(can_compare_sended(send_msg_cmp));
+
+	ASSERT(fifo_get_count(&can_outfifo) == 15);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(9,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 29);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 6);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+11L);  //Absender = 2   Empfänger = 1
+	send_msg_cmp.flags.rtr = 0;
+	send_msg_cmp.flags.extended = 1;
+	send_msg_cmp.length  = 3;
+	send_msg_cmp.data[0]=1;
+	send_msg_cmp.data[1]=140+channel;
+	send_msg_cmp.data[2]=1;
+
+	bool can_compare_sended(can_t msg);
+	ASSERT(can_compare_sended(send_msg_cmp));
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(10,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get(&eth_outfifo) == 30);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	ASSERT(fifo_get(&eth_outfifo) == 7);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can_infifo) == 0);
+
+	ASSERT( enocean_state_get(channel) == 1);
+
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+	enocean_main();
+
+	ASSERT(enocean_check_uart_output(140+channel, 1) == true);
+	
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
+	enocean_main();
+	ASSERT(fifo_get_count(&uart_outfifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(11,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
-	ASSERT(fifo_get(&eth_outfifo) == 31);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
+
+	PASS();
+}
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(12,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 
-	init_eth_mock();
-	clean_eth_buffer();
-	send_udp_msg(120,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 12);
-	ASSERT(fifo_get(&eth_outfifo) == 10);
-	ASSERT(fifo_get(&eth_outfifo) == 1);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	ASSERT(fifo_get(&eth_outfifo) == 0);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
-	fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);fifo_get(&eth_outfifo);
 
+TEST power_mgt_case(uint8_t old, uint8_t new, uint8_t future) {
+	extern fifo_t can_outfifo;
 
+	if (new) key_state = 4; else key_state = 0;	
+	enocean_state_set(0,old);
+	power_mgt_init();
+	power_mgt_main();
+	ASSERT( enocean_state_get(0) == old);
+	power_mgt_tick();
+	power_mgt_tick();
+	power_mgt_tick();
+	power_mgt_tick();
+	power_mgt_main();
+	power_mgt_main();
+	power_mgt_main();
+	ASSERT( enocean_state_get(0) == old);
+	power_mgt_tick();
+	power_mgt_main();
+	power_mgt_main();
+	ASSERT_EQ( enocean_state_get(0), new);
+	if (future) key_state = 4; else key_state = 0;	
+	power_mgt_main();
+	ASSERT_EQ( enocean_state_get(0), future);
 
 	PASS();
 }
@@ -264,8 +290,22 @@ TEST send_udp_msg_case(void) {
 
 SUITE(suite) {
 	RUN_TEST(fifo_case);
-	RUN_TEST(canframestorage_case);
-	RUN_TEST(send_udp_msg_case);
+	RUN_TEST(uart_case);
+	RUN_TEST(enocean_case);
+	RUN_TEST(shackbus_case);
+	RUN_TEST(shackbus_ping_case);
+	RUN_TESTp(shackbus_channel_case,0);
+	RUN_TESTp(shackbus_channel_case,1);
+	RUN_TESTp(shackbus_channel_case,2);
+	RUN_TESTp(shackbus_channel_case,3);
+	RUN_TESTp(power_mgt_case, 0, 0, 0);
+	RUN_TESTp(power_mgt_case, 0, 0, 1);
+	RUN_TESTp(power_mgt_case, 0, 1, 0);
+	RUN_TESTp(power_mgt_case, 0, 1, 1);
+	RUN_TESTp(power_mgt_case, 1, 0, 0);
+	RUN_TESTp(power_mgt_case, 1, 0, 1);
+	RUN_TESTp(power_mgt_case, 1, 1, 0);
+	RUN_TESTp(power_mgt_case, 1, 1, 1);
 
 }
 

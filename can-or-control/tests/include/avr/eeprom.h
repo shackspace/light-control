@@ -403,13 +403,13 @@
 #define _EEPROM_CONCAT1(s1, s2)     s1 ## s2
 #define _EEPROM_CONCAT2(s1, s2)     _EEPROM_CONCAT1 (s1, s2)
 
-#define eeprom_read_byte      _EEPROM_CONCAT2 (__eerd_byte, _EEPROM_SUFFIX)
+//#define eeprom_read_byte(x)   eeprom_read_byte(x)
 #define eeprom_read_word      _EEPROM_CONCAT2 (__eerd_word, _EEPROM_SUFFIX)
 #define eeprom_read_dword     _EEPROM_CONCAT2 (__eerd_dword, _EEPROM_SUFFIX)
 #define eeprom_read_float     _EEPROM_CONCAT2 (__eerd_float, _EEPROM_SUFFIX)
-#define eeprom_read_block(x,y,z)
+//#define eeprom_read_block(x,y,z)
 
-#define eeprom_write_byte     _EEPROM_CONCAT2 (__eewr_byte, _EEPROM_SUFFIX)
+//#define eeprom_write_byte(x)   eeprom_write_byte(x)
 #define eeprom_write_word     _EEPROM_CONCAT2 (__eewr_word, _EEPROM_SUFFIX)
 #define eeprom_write_dword    _EEPROM_CONCAT2 (__eewr_dword, _EEPROM_SUFFIX)
 #define eeprom_write_float    _EEPROM_CONCAT2 (__eewr_float, _EEPROM_SUFFIX)
@@ -474,7 +474,7 @@ extern "C" {
 # ifdef	 __DOXYGEN__
 #  define __ATTR_PURE__
 # else
-#  define __ATTR_PURE__  __attribute__((__pure__))
+#  define __ATTR_PURE__
 # endif
 #endif
 
@@ -512,7 +512,7 @@ extern "C" {
 /** \ingroup avr_eeprom
     Read one byte from EEPROM address \a __p.
  */
-uint8_t eeprom_read_byte (const uint8_t *__p) __ATTR_PURE__;
+uint8_t eeprom_read_byte (const uint8_t __p) __ATTR_PURE__;
 
 /** \ingroup avr_eeprom
     Read one 16-bit word (little endian) from EEPROM address \a __p.
@@ -539,7 +539,7 @@ void eeprom_read_block (void *__dst, const void *__src, size_t __n);
 /** \ingroup avr_eeprom
     Write a byte \a __value to EEPROM address \a __p.
  */
-void eeprom_write_byte (uint8_t *__p, uint8_t __value);
+void eeprom_write_byte (uint8_t __p, uint8_t __value);
 
 /** \ingroup avr_eeprom
     Write a word \a __value to EEPROM address \a __p.

@@ -18,5 +18,8 @@ uint8_t PORTB;
 uint8_t PORTC;
 uint8_t PORTD;
 
+#define PD2 2
+#define _BV(bit) 	   (1 << (bit))
+
 
 #endif

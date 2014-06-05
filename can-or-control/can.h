@@ -179,8 +179,8 @@ typedef struct
 	#if SUPPORT_EXTENDED_CANID	
 		uint32_t id;				//!< ID der Nachricht (11 oder 29 Bit)
 		struct {
-			int rtr : 1;			//!< Remote-Transmit-Request-Frame?
-			int extended : 1;		//!< extended ID?
+			int rtr;			//!< Remote-Transmit-Request-Frame?
+			int extended;		//!< extended ID?
 		} flags;
 	#else
 		uint16_t id;				//!< ID der Nachricht (11 Bit)
