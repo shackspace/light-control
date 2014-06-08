@@ -68,6 +68,8 @@ function exitHandler(options, err) {
 }
 //catches ctrl+c event
 process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+//catches sigterm event
+process.on('SIGTERM', exitHandler.bind(null, {exit:true}));
 //catches uncaught exceptions
 process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
 
