@@ -118,8 +118,6 @@ TEST shackbus_case(void) {
 	ASSERT(fifo_get_count(&can_outfifo) == 0);
 	ASSERT(fifo_get_count(&can_infifo) == 0);
 
-	printf("\n\n");
-
 	PASS();
 }
 
@@ -257,32 +255,39 @@ TEST shackbus_channel_case(uint8_t channel) {
 }
 
 
+void power_mgt_case_tick_main(int tick, int main);
+void power_mgt_case_tick_main(int tick, int main)
+{
+	for (int i=0; i<tick; i++) power_mgt_tick();
+	for (int i=0; i<main; i++) power_mgt_main();
+}
 
-
-
-TEST power_mgt_case(uint8_t old, uint8_t new, uint8_t future) {
+TEST power_mgt_case(uint8_t channel, uint8_t old, uint8_t new, uint8_t future) {
+	
 	extern fifo_t can_outfifo;
 
-	if (new) key_state = 4; else key_state = 0;	
-	enocean_state_set(0,old);
 	power_mgt_init();
-	power_mgt_main();
-	ASSERT( enocean_state_get(0) == old);
-	power_mgt_tick();
-	power_mgt_tick();
-	power_mgt_tick();
-	power_mgt_tick();
-	power_mgt_main();
-	power_mgt_main();
-	power_mgt_main();
-	ASSERT( enocean_state_get(0) == old);
-	power_mgt_tick();
-	power_mgt_main();
-	power_mgt_main();
-	ASSERT_EQ( enocean_state_get(0), new);
-	if (future) key_state = 4; else key_state = 0;	
-	power_mgt_main();
-	ASSERT_EQ( enocean_state_get(0), future);
+	power_mgt_set_input_1(channel, new);	
+	if (channel == 0) if (new) key_state = 4; else key_state = 0;
+	if (channel==3) power_mgt_set_wait_off(channel, 120*60);
+
+	enocean_state_set(channel,old);
+	power_mgt_case_tick_main(0, 1*4);
+	ASSERT( enocean_state_get(channel) == old);
+
+	power_mgt_case_tick_main(4-channel, 2*4);
+	ASSERT( enocean_state_get(channel) == old);
+
+	power_mgt_case_tick_main(1, 3*4);
+	if (channel==3) power_mgt_case_tick_main(120*60, 2*4);
+	ASSERT_EQ( enocean_state_get(channel), new);
+
+	power_mgt_set_input_1(channel, future);	
+	if (channel == 0) if (future) key_state = 4; else key_state = 0;
+
+	power_mgt_case_tick_main(0, 2*4);
+	if (channel==3) power_mgt_case_tick_main(120*60, 2*4);
+	ASSERT_EQ( enocean_state_get(channel), future);
 
 	PASS();
 }
@@ -298,14 +303,41 @@ SUITE(suite) {
 	RUN_TESTp(shackbus_channel_case,1);
 	RUN_TESTp(shackbus_channel_case,2);
 	RUN_TESTp(shackbus_channel_case,3);
-	RUN_TESTp(power_mgt_case, 0, 0, 0);
-	RUN_TESTp(power_mgt_case, 0, 0, 1);
-	RUN_TESTp(power_mgt_case, 0, 1, 0);
-	RUN_TESTp(power_mgt_case, 0, 1, 1);
-	RUN_TESTp(power_mgt_case, 1, 0, 0);
-	RUN_TESTp(power_mgt_case, 1, 0, 1);
-	RUN_TESTp(power_mgt_case, 1, 1, 0);
-	RUN_TESTp(power_mgt_case, 1, 1, 1);
+	RUN_TESTp(power_mgt_case, 0, 0, 0, 0);
+	RUN_TESTp(power_mgt_case, 0, 0, 0, 1);
+	RUN_TESTp(power_mgt_case, 0, 0, 1, 0);
+	RUN_TESTp(power_mgt_case, 0, 0, 1, 1);
+	RUN_TESTp(power_mgt_case, 0, 1, 0, 0);
+	RUN_TESTp(power_mgt_case, 0, 1, 0, 1);
+	RUN_TESTp(power_mgt_case, 0, 1, 1, 0);
+	RUN_TESTp(power_mgt_case, 0, 1, 1, 1);
+
+	RUN_TESTp(power_mgt_case, 1, 0, 0, 0);
+	RUN_TESTp(power_mgt_case, 1, 0, 0, 1);
+	RUN_TESTp(power_mgt_case, 1, 0, 1, 0);
+	RUN_TESTp(power_mgt_case, 1, 0, 1, 1);
+	RUN_TESTp(power_mgt_case, 1, 1, 0, 0);
+	RUN_TESTp(power_mgt_case, 1, 1, 0, 1);
+	RUN_TESTp(power_mgt_case, 1, 1, 1, 0);
+	RUN_TESTp(power_mgt_case, 1, 1, 1, 1);
+
+	RUN_TESTp(power_mgt_case, 2, 0, 0, 0);
+	RUN_TESTp(power_mgt_case, 2, 0, 0, 1);
+	RUN_TESTp(power_mgt_case, 2, 0, 1, 0);
+	RUN_TESTp(power_mgt_case, 2, 0, 1, 1);
+	RUN_TESTp(power_mgt_case, 2, 1, 0, 0);
+	RUN_TESTp(power_mgt_case, 2, 1, 0, 1);
+	RUN_TESTp(power_mgt_case, 2, 1, 1, 0);
+	RUN_TESTp(power_mgt_case, 2, 1, 1, 1);
+
+	RUN_TESTp(power_mgt_case, 3, 0, 0, 0);
+	RUN_TESTp(power_mgt_case, 3, 0, 0, 1);
+	RUN_TESTp(power_mgt_case, 3, 0, 1, 0);
+	RUN_TESTp(power_mgt_case, 3, 0, 1, 1);
+	RUN_TESTp(power_mgt_case, 3, 1, 0, 0);
+	RUN_TESTp(power_mgt_case, 3, 1, 0, 1);
+	RUN_TESTp(power_mgt_case, 3, 1, 1, 0);
+	RUN_TESTp(power_mgt_case, 3, 1, 1, 1);
 
 }
 
