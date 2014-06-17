@@ -21,6 +21,7 @@
 	void power_mgt_set_wait_off(uint8_t _channel, uint16_t _value);
 	void power_mgt_main(void);
 	void power_mgt_tick(void);
+	void power_mgt_msg_send(void);
 
 #endif // USE_POWER_MGT
 #endif /* _POWER_MGT_H_ */

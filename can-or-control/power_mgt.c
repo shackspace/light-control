@@ -4,7 +4,7 @@
  Remarks:        
  known Problems: none
  Version:        23.05.2014
- Description:    Power Management Headerfile
+ Description:    Power Management
 
 ------------------------------------------------------------------------------*/
 
@@ -17,6 +17,8 @@
 #include "can.h"
 #include "power_mgt.h"
 
+
+uint8_t power_mgt_msg_send_flag = 0;
 
 enum power_mgt_states_enum {INIT, OFF, ON, DO_ON, DO_OFF, OFF_WAIT};
 
@@ -59,6 +61,7 @@ void power_mgt_init(void)
 		power_mgt_state[i].wait_off = 0;
 		power_mgt_state[i].counter = power_mgt_state[i].wait_startup;
 	}
+	return;
 }
 
 
@@ -123,35 +126,54 @@ void power_mgt_main(void)
 			break;
 	}
 
+	power_mgt_msg_send();
+
+	return;
+}
+
+
+void power_mgt_msg_send(void)
+{
+	if (power_mgt_msg_send_flag)
+	{
+		power_mgt_msg_send_flag = 0;
+
+		shackbus_id_t ka_id;
+		ka_id.prio = 1;
+		ka_id.vlan = 2;
+		ka_id.dst  = 255;
+		ka_id.src  = 8;
+		ka_id.prot = 12;
+
+		can_t ka;
+		ka.id = shackbus_sb2id(&ka_id);
+		ka.length = 7;
+
+		ka.flags.extended = 1;
+
+		ka.data[0] = power_mgt_state[0].state;
+		ka.data[1] = power_mgt_state[1].state;
+		ka.data[2] = power_mgt_state[2].state;
+		ka.data[3] = power_mgt_state[3].state;
+		ka.data[4] = power_mgt_state[1].input_1;
+		ka.data[5] = (power_mgt_state[3].counter)/256;
+		ka.data[6] = power_mgt_state[3].counter;
+
+		can_send_message(&ka);
+	}
+	return;
 }
 
 
 void power_mgt_tick(void)
 {
-	can_t ka;
-	shackbus_id_t ka_id;
-	ka_id.prio = 1;
-	ka_id.vlan = 2;
-	ka_id.dst  = 255;
-	ka_id.src  = 8;
-	ka_id.prot = 12;
-
-	ka.id = shackbus_sb2id(&ka_id);
-	ka.length = 5;
-
 	for (int i=0;i<POWER_MGT_CHANNEL_COUNT;i++)
 	{
 		if (power_mgt_state[i].counter) power_mgt_state[i].counter--;
 	}
 
-	ka.data[0] = power_mgt_state[0].state;
-	ka.data[1] = power_mgt_state[0].counter;
-	ka.data[2] = enocean_state_get(0);
-	ka.data[3] = power_mgt_state[0].input_1;
-	ka.data[4] = eeprom_read_byte((unsigned char *)ENOCEAN_CHANNEL_EEPROM_STORE+0);
-
-	can_send_message(&ka);
-
+	power_mgt_msg_send_flag = 1;
+	return;
 }
 
 
