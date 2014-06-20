@@ -17,6 +17,7 @@
 #include "shackbus.h"
 #include "can.h"
 #include "enocean.h"
+#include "power_mgt.h"
 
 
 const uint8_t PROGMEM can_filter[] = 
@@ -165,6 +166,39 @@ void shackbus_main(void)
 				if (msg.data[2]==1) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_SS);
 				if (msg.data[2]==0) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_CS);
 			}
+
+
+
+			/* prot=11 = PowerManagement data[0]=0 =on/off data[1]=channel data[2]=state */
+			/* channel 140 0x8c = DLE Dusche    */
+			/* channel 141 0x8d = DLE E-Lab     */
+			/* channel 142 0x8e = Optionsraeume  */
+			/* channel 143 0x8f = Kueche         */
+			if (shackbus_id.prot == 11 && shackbus_id.dst == 6 && msg.data[0]==0 \
+				&& msg.data[1] >= 140 && msg.data[1] <= 143)
+			{
+				shackbus_id.prio = 3;
+				shackbus_id.vlan = 4;
+				shackbus_id.dst  = shackbus_id.src;
+				shackbus_id.src  = 8;
+				shackbus_id.prot = 11;
+
+				msg.id = shackbus_sb2id(&shackbus_id);
+				msg.length = 3;
+				msg.data[0] = 0;
+				msg.data[1] = msg.data[1];
+				msg.data[2] = msg.data[2];
+
+				/* Send the message */
+				can_send_message(&msg);
+
+				void power_mgt_set_input_1(uint8_t _channel, uint8_t _state);
+				void power_mgt_set_wait_off(uint8_t _channel, uint16_t _value);
+				power_mgt_set_input_1(msg.data[1]-140, msg.data[2]);
+				power_mgt_set_wait_off(msg.data[1]-140, 20);
+			}
+
+
 		}
 	}
 }
