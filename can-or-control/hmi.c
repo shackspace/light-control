@@ -27,14 +27,8 @@ enum hauptschalter_states hauptschalter_status;
 uint8_t blinker;
 uint8_t blinker_cnt;
 
-uint8_t flag_light_shutdown;
-
 extern uint8_t enocean_channel_state[];
 void led_set(uint8_t,uint8_t);
-
-//uint8_t channel_led_conf[8]={0,1,0,1,3,4,4,2};
-uint8_t channel_led_conf[12]={0,0,1,1,0,1,3,3,4,4,2,5};
-
 
 void hmi_init(void)
 {
@@ -53,29 +47,6 @@ void hmi_init(void)
 }
 
 
-uint8_t group_state_get(uint8_t group)
-{
-	//nachschauen welcher Kanal mit led verknüpft ist.
-	for (uint8_t i = 0; i < 12; i++) {		
-		if (channel_led_conf[i] == group) {
-			if (enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS)
-				return 1;
-		}
-	}
-	return 0;
-}
-
-void group_state_set(uint8_t group, uint8_t state)
-{
-	//nachschauen welcher Kanal mit led verknüpft ist.
-	for (uint8_t i = 0; i < 12; i++) {		
-		if (channel_led_conf[i] == group) {
-			enocean_state_set(i, state);
-		}
-	}
-	return;
-}
-
 void hmi_main(void)
 {
 	//für jede LED einen Durchlauf	
@@ -84,13 +55,9 @@ void hmi_main(void)
 		if ( key_press & _BV(j) )
 		{
 			key_press ^= _BV(j);
-			if (group_state_get(j))
-				group_state_set(j,ENOCEAN_CHANNEL_SE_SA_CS);
-			else
-				group_state_set(j,ENOCEAN_CHANNEL_SE_SA_SS);
 		}
 	
-		led_set(j,group_state_get(j));
+		led_set(j,0);
 
 	}
 
@@ -161,74 +128,6 @@ void hmi_main(void)
 			break;	
 	}
 
-	if (flag_light_shutdown)
-	{
-		flag_light_shutdown = 0;
-		hmi_light_shutdown();
-	}
-
-
-}
-
-void hmi_light_shutdown(void)
-{
-	static uint8_t light_shutdown_state = 0;
-	static uint8_t light_shutdown_counter = 0;
-
-	if ( hauptschalter_status==ON )
-		light_shutdown_state=0; 
-
-	if (light_shutdown_state==0)
-	{
-		light_shutdown_counter=0;
-	}
-
-	
-	if ( light_shutdown_state==0 && hauptschalter_status==OFF_WAIT )
-	{
-		light_shutdown_state = 1;
-	}	
-
-	if (light_shutdown_state==1)
-	{
-		if (light_shutdown_counter == 1)
-		{
-			if ( group_state_get(0) || group_state_get(1) || group_state_get(3) || group_state_get(4) )
-				group_state_set(2,ENOCEAN_CHANNEL_SE_SA_SS);
-		}		
-		if (light_shutdown_counter == 2)
-			enocean_state_set(0,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 3)
-			enocean_state_set(1,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 4)
-			enocean_state_set(2,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 5)
-			enocean_state_set(3,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 6)
-			enocean_state_set(4,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 7)
-			enocean_state_set(5,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 6)
-			enocean_state_set(6,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 7)
-			enocean_state_set(7,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 8)
-			enocean_state_set(8,ENOCEAN_CHANNEL_SE_SA_CS);
-		if (light_shutdown_counter == 9)
-			enocean_state_set(9,ENOCEAN_CHANNEL_SE_SA_CS);
-
-		if (light_shutdown_counter == 15)
-		{
-			group_state_set(2,ENOCEAN_CHANNEL_SE_SA_CS);
-		}		
-
-		light_shutdown_counter++;
-	}
-
-	if( light_shutdown_counter >= 30 )
-		light_shutdown_state = 0;
-
-
 }
 
 
@@ -241,9 +140,6 @@ void hmi_tick(void)
 		blinker ^= 1;
 		counter=0;
 		blinker_cnt++;
-
-		flag_light_shutdown = 1;
-
 	}
 
 }

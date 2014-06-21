@@ -21,11 +21,6 @@
 
 	void led_set(uint8_t led, uint8_t status);
 
-	uint8_t group_state_get(uint8_t group);
-	void group_state_set(uint8_t group, uint8_t state);
-
-	void hmi_light_shutdown(void);
-
 	#define MAINSWITCH_STATE (key_state & _BV(7))
 
 #endif // USE_HMI
