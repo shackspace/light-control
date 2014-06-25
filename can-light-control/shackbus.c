@@ -18,6 +18,7 @@
 #include "can.h"
 
 
+uint8_t shackbus_msg_send_flag = 0;
 
 const uint8_t PROGMEM can_filter[] = 
 {
@@ -143,6 +144,39 @@ uint32_t shackbus_sb2id(shackbus_id_t* sb)
 
 void shackbus_main(void)
 {
+
+	if (shackbus_msg_send_flag)
+	{
+		can_t msg;
+		shackbus_id_t shackbus_id;
+
+
+		shackbus_msg_send_flag = 0;
+
+		shackbus_id.prio = 3;
+		shackbus_id.vlan = 4;
+		shackbus_id.dst  = 255;
+		shackbus_id.src  = 6;
+		shackbus_id.prot = 13;
+
+		msg.id = shackbus_sb2id(&shackbus_id);
+		msg.length = 1;
+		msg.flags.extended = 1;
+
+		if (MAINSWITCH_STATE)
+			msg.data[0] = 1;
+		else
+			msg.data[0] = 0;
+
+		//Send the new message
+		can_send_message(&msg);
+
+		return; // erstmal diese nachricht verschicken...
+	}
+
+
+
+
 	// Check if a new messag was received
 	if (can_check_message())
 	{
@@ -231,6 +265,9 @@ uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
 
 void shackbus_tick(void)
 {
+	shackbus_msg_send_flag = 1;
+
+
 //	can_t ka;
 //	shackbus_id_t ka_id;
 //	ka_id.prio = 3;
