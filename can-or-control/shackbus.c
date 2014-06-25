@@ -198,6 +198,41 @@ void shackbus_main(void)
 				power_mgt_set_wait_off(msg.data[1]-140, 20);
 			}
 
+			/* prot=13 = Hauptschalterstate length=1 data[0]=state */
+			/* 0 => OFF    */
+			/* 1 => ON     */
+			if (shackbus_id.prot == 13 && shackbus_id.dst == 255 && msg.length == 1)
+			{
+				shackbus_id.prio = 3;
+				shackbus_id.vlan = 4;
+				shackbus_id.dst  = shackbus_id.src;
+				shackbus_id.src  = 8;
+				shackbus_id.prot = 13;
+
+				msg.id = shackbus_sb2id(&shackbus_id);
+				msg.length = 3;
+				msg.data[0];
+				msg.data[1] = 2;
+				msg.data[2] = 3;
+
+				/* Send the message */
+//				can_send_message(&msg);
+
+				if (msg.data[0] > 1)
+					msg.data[0] = 0;
+
+				power_mgt_set_input_1 (1, msg.data[0]);
+				power_mgt_set_wait_on (1, 4); //DLE Kueche
+				power_mgt_set_wait_off(1, 5);
+				power_mgt_set_input_1 (2, msg.data[0]);
+				power_mgt_set_wait_on (2, 2); //OR
+				power_mgt_set_wait_off(2, 4);
+				power_mgt_set_input_1 (3, msg.data[0]);
+				power_mgt_set_wait_on (3, 3); //Kueche
+				power_mgt_set_wait_off(3, 90 * 60); //Sekunden
+			}
+
+
 
 		}
 	}
