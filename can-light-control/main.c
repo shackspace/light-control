@@ -120,15 +120,21 @@ int main(void)
 		wdt_reset();
 
 		#if USE_ENOCEAN
+			cli();
 			enocean_main();
+			sei();
 		#endif
 		
 		#if USE_HMI
+			cli();
 			hmi_main();
+			sei();
 		#endif
 		
 		#if USE_SHACKBUS
+			cli();
 			shackbus_main();
+			sei();
 		#endif
 
 		#if USE_ENOCEAN_PARSER
@@ -157,6 +163,7 @@ int main(void)
 		}
 
 
+			cli();		
 		can_error_register_t aktuelle_fehler = can_read_error_register();
 		if (aktuelle_fehler.rx)
 		{
@@ -166,6 +173,7 @@ int main(void)
 		{
 //			group_state_set(3,ENOCEAN_CHANNEL_SA_SS);
 		}
+			sei();		
 
 		
 		
