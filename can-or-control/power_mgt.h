@@ -18,6 +18,7 @@
 
 	void power_mgt_init(void);
 	void power_mgt_set_input_1(uint8_t _channel, uint8_t _state);
+	void power_mgt_set_wait_on(uint8_t _channel, uint16_t _value);
 	void power_mgt_set_wait_off(uint8_t _channel, uint16_t _value);
 	void power_mgt_main(void);
 	void power_mgt_tick(void);

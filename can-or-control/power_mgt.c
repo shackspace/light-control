@@ -20,13 +20,14 @@
 
 uint8_t power_mgt_msg_send_flag = 0;
 
-enum power_mgt_states_enum {INIT, OFF, ON, DO_ON, DO_OFF, OFF_WAIT};
+enum power_mgt_states_enum {INIT, OFF, ON, DO_ON, DO_OFF, ON_WAIT, OFF_WAIT};
 
 typedef struct
 {
 	enum power_mgt_states_enum state;
 	uint8_t wait_startup;
 	uint8_t input_1;
+	uint16_t wait_on;
 	uint16_t wait_off;
 	uint16_t counter;
 } power_mgt_state_t;
@@ -45,6 +46,12 @@ void power_mgt_set_input_1(uint8_t _channel, uint8_t _state)
 	return;
 }
 
+void power_mgt_set_wait_on(uint8_t _channel, uint16_t _value)
+{
+	power_mgt_state[_channel].wait_on = _value;
+	return;
+}
+
 void power_mgt_set_wait_off(uint8_t _channel, uint16_t _value)
 {
 	power_mgt_state[_channel].wait_off = _value;
@@ -58,6 +65,7 @@ void power_mgt_init(void)
 		power_mgt_state[i].state = INIT;
 		power_mgt_state[i].wait_startup = 5-i;
 		power_mgt_state[i].input_1 = 0;
+		power_mgt_state[i].wait_on = 0;
 		power_mgt_state[i].wait_off = 0;
 		power_mgt_state[i].counter = power_mgt_state[i].wait_startup;
 	}
@@ -93,8 +101,22 @@ void power_mgt_main(void)
 			STATE = OFF;
 
 		case OFF:
-			if ( state->input_1 )
-				STATE = DO_ON;
+			if ( !state->input_1 ) //OFF
+			{
+				break;
+			} else { //ON
+				if ( state->wait_on)
+					state->counter = state->wait_on;
+				STATE = ON_WAIT;
+			}
+
+		case ON_WAIT:
+			if ( state->input_1 ) //ON
+			{
+				if ( state->counter == 0 )
+					STATE = DO_ON;
+			} else
+				STATE = DO_OFF;
 			break;
 
 
