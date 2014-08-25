@@ -28,6 +28,5 @@ void uart_init()
 uint8_t uart_putc (const uint8_t c)
 {
     uint8_t ret = fifo_put (&uart_outfifo, c);
-
     return ret;
 };

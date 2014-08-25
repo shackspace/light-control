@@ -17,6 +17,13 @@
 #include "../uart.h"
 #include "../enocean.h"
 
+void _delay_ms(uint8_t val);
+void _delay_ms(uint8_t val){return;};
+void let_set(uint8_t val);
+void led_set(uint8_t val1, uint8_t val2){return;};
+void reset_visualisation(void);
+void reset_visualisation(void){return;};
+
 uint8_t enocean_channel_storage[4] = {0,0,0,0};
 
 void enocean_mock_init(void);
