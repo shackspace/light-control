@@ -11,6 +11,7 @@
 #include "../config.h"
 #include "../fifo.c"
 #include "../enocean.c"
+#include "../framestorage.c"
 #include "../shackbus.c"
 
 /* Declare a local suite. */
@@ -24,6 +25,25 @@ TEST fifo_case(void) {
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 	fifo_put (&mock_can_infifo, 10);
 	ASSERT(fifo_get_count(&mock_can_infifo) == 1);
+	PASS();
+}
+
+TEST framestorage_case(void) {
+	framestorage_init();
+	ASSERT(framestorage_item_next() == 0);
+	framestorage_put(0);
+
+	int x;
+	for (x = 1; x < FS_DATA_SIZE; x++) {
+		int tmp = framestorage_item_next();
+		framestorage_put(tmp);
+	}
+
+	ASSERT(framestorage_item_next() == 255);
+
+	framestorage_get(5);
+	ASSERT(framestorage_item_next() == 5);
+
 	PASS();
 }
 
@@ -96,6 +116,48 @@ TEST enocean_case(void) {
 	PASS();
 }
 
+TEST shackbus_mock_can_outfifo_case(void) {
+	extern fifo_t mock_can_outfifo;
+	extern fifo_t mock_can_infifo;
+	shackbus_init();
+	can_mock_init();
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	shackbus_main();
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+
+	can_t send_msg_cmp;
+	send_msg_cmp.id = 1337;  //Absender = 2   Empfänger = 1
+	send_msg_cmp.flags.rtr = 1;
+	send_msg_cmp.flags.extended = 0;
+	send_msg_cmp.length  = 3;
+	send_msg_cmp.data[0]=123;
+	send_msg_cmp.data[1]=132;
+	send_msg_cmp.data[2]=1;
+
+	ASSERT(framestorage_item_next() == 0);
+
+	memcpy(&framestorage_data[0], &send_msg_cmp, sizeof(FS_DATA_TYPE));
+	framestorage_put(0);
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	fifo_put (&can_outfifo, 0);
+	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	shackbus_main();
+
+	bool can_compare_sended(can_t msg);
+	ASSERT(can_compare_sended(send_msg_cmp));
+
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	shackbus_main();
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+
+	ASSERT(framestorage_get(0) == 255);
+	ASSERT(framestorage_item_next() == 0);
+
+	PASS();
+}
+
 TEST shackbus_case(void) {
 	extern fifo_t mock_can_outfifo;
 	extern fifo_t mock_can_infifo;
@@ -108,6 +170,7 @@ TEST shackbus_case(void) {
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 	shackbus_send_msg(123,132);
+	shackbus_main();
 
 	can_t send_msg_cmp;
 	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+9L);  //Absender = 2   Empfänger = 1
@@ -167,6 +230,7 @@ TEST shackbus_ping_case(void) {
 	ASSERT(fifo_get_count(&mock_can_infifo) == 15);
 
 	shackbus_main();
+	shackbus_main();
 
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 15);
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
@@ -190,8 +254,10 @@ TEST shackbus_ping_case(void) {
 
 SUITE(suite) {
 	RUN_TEST(fifo_case);
+	RUN_TEST(framestorage_case);
 	RUN_TEST(uart_case);
 	RUN_TEST(enocean_case);
+	RUN_TEST(shackbus_mock_can_outfifo_case);
 	RUN_TEST(shackbus_case);
 	RUN_TEST(shackbus_ping_case);
 
