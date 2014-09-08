@@ -64,7 +64,7 @@
 
 	#define USE_SHACKBUS 1
 
-	#define USE_CANFRAMESTORAGE
+	#define USE_FRAMESTORAGE 1
 
     //DNS-Server
     #define USE_DNS     0 //1 = DNS Client on
