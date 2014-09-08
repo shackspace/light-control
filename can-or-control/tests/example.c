@@ -19,12 +19,12 @@ SUITE(suite);
 
 
 TEST fifo_case(void) {
-	fifo_t can_infifo;
+	fifo_t mock_can_infifo;
 	uint8_t inbuf[10];
-	fifo_init (&can_infifo,   inbuf, 10);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	fifo_put (&can_infifo, 10);
-	ASSERT(fifo_get_count(&can_infifo) == 1);
+	fifo_init (&mock_can_infifo,   inbuf, 10);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
+	fifo_put (&mock_can_infifo, 10);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 1);
 	PASS();
 }
 
@@ -78,15 +78,15 @@ TEST enocean_case(void) {
 }
 
 TEST shackbus_case(void) {
-	extern fifo_t can_outfifo;
-	extern fifo_t can_infifo;
+	extern fifo_t mock_can_outfifo;
+	extern fifo_t mock_can_infifo;
 	shackbus_init();
 	can_mock_init();
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 	shackbus_main();
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 	shackbus_send_msg(123,132);
 
@@ -103,34 +103,34 @@ TEST shackbus_case(void) {
 	ASSERT(can_compare_sended(send_msg_cmp));
 
 
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 
 	uint8_t can_input_message(can_t *msg);
 	can_input_message(&send_msg_cmp);
 	ASSERT(can_check_message());
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 15);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 15);
 
 	shackbus_main();
 
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 	PASS();
 }
 
 TEST shackbus_ping_case(void) {
-	extern fifo_t can_outfifo;
-	extern fifo_t can_infifo;
+	extern fifo_t mock_can_outfifo;
+	extern fifo_t mock_can_infifo;
 	shackbus_init();
 	can_mock_init();
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 	shackbus_main();
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 	can_t send_msg_cmp;
 	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(8L<<14)+(8L<<6)+10L);  //Absender = 2   Empfänger = 1
@@ -144,13 +144,13 @@ TEST shackbus_ping_case(void) {
 	uint8_t can_input_message(can_t *msg);
 	can_input_message(&send_msg_cmp);
 	ASSERT(can_check_message());
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 15);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 15);
 
 	shackbus_main();
 
-	ASSERT(fifo_get_count(&can_outfifo) == 15);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 15);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 
 	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(8L<<14)+(8L<<6)+10L);  //Absender = 2   Empfänger = 1
@@ -159,8 +159,8 @@ TEST shackbus_ping_case(void) {
 	bool can_compare_sended(can_t msg);
 	ASSERT(can_compare_sended(send_msg_cmp));
 
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 
 	PASS();
