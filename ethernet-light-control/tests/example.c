@@ -10,7 +10,7 @@
 #include "../config.h"
 #include "../fifo.c"
 #include "../enocean.c"
-#include "../canframestorage.c"
+#include "../framestorage.c"
 #include "../shackbus.c"
 #include "../stack.h"
 
@@ -28,21 +28,21 @@ TEST fifo_case(void) {
 	PASS();
 }
 
-TEST canframestorage_case(void) {
-	canframestorage_init();
-	ASSERT(canframestorage_item_next() == 0);
-	canframestorage_data[0].state = 1;
+TEST framestorage_case(void) {
+	framestorage_init();
+	ASSERT(framestorage_item_next() == 0);
+	framestorage_data[0].state = 1;
 
 	int x;
-	for (x = 1; x < CANFRAMESTORAGE_DATA_SIZE; x++) {
-		int tmp = canframestorage_item_next();
-		canframestorage_data[tmp].state = 1;
+	for (x = 1; x < FS_DATA_SIZE; x++) {
+		int tmp = framestorage_item_next();
+		framestorage_data[tmp].state = 1;
 	}
 
-	ASSERT(canframestorage_item_next() == 255);
+	ASSERT(framestorage_item_next() == 255);
 
-	canframestorage_item_clear(5);
-	ASSERT(canframestorage_item_next() == 5);
+	framestorage_item_clear(5);
+	ASSERT(framestorage_item_next() == 5);
 
 	PASS();
 }
@@ -264,7 +264,7 @@ TEST send_udp_msg_case(void) {
 
 SUITE(suite) {
 	RUN_TEST(fifo_case);
-	RUN_TEST(canframestorage_case);
+	RUN_TEST(framestorage_case);
 	RUN_TEST(send_udp_msg_case);
 
 }
