@@ -83,7 +83,7 @@ SRC += networkcard/enc28j60.c networkcard/rtl8019.c
 
 SRC += dnsc.c dhcpc.c
 
-SRC += enocean.c can2udp.c shackbus.c fifo.c canframestorage.c
+SRC += enocean.c can2udp.c shackbus.c fifo.c framestorage.c
 
 SRC += mem-check.c
 

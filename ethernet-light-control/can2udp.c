@@ -41,7 +41,7 @@
 
 #include "mem-check.h"
 
-#include "canframestorage.h"
+#include "framestorage.h"
 
 // ----------------------------------------------------------------------------
 // default values
