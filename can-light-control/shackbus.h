@@ -1,60 +1,39 @@
-// coding: utf-8
-// ----------------------------------------------------------------------------
-/*
+/*----------------------------------------------------------------------------
+ Copyright:      Ulrich Escher  mailto: code@myvdr.de
+ Author:         Ulrich Escher
+ Remarks:        
+ known Problems: none
+ Version:        11.04.2012
+ Description:    Header-Datei für das allgemeine CAN Interface für Shackbus
 
-
-
-
- */
-// ----------------------------------------------------------------------------
-/**
- * \file    shackbus.h
- * \brief   Header-Datei für das allgemeine CAN Interface für Shackbus
- */
-// ----------------------------------------------------------------------------
+------------------------------------------------------------------------------*/
 
 #ifndef SHACKBUS_H
 #define SHACKBUS_H
 
-// ----------------------------------------------------------------------------
-
-#include <avr/pgmspace.h>
-#include <stdint.h>
-#include <stdbool.h>
-
 #include "config.h"
-#include "hmi.h"
-#include "enocean.h"
+#if USE_SHACKBUS
 
-void shackbus_init(void);
-void shackbus_main(void);
-void shackbus_tick(void);
+	#include "can.h"
 
-uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2);
+	void shackbus_init(void);
+	void shackbus_main(void);
+	void shackbus_tick(void);
 
-typedef struct
-{
-	uint8_t prio; //Priorität 3bit
-	uint8_t vlan; //VLAN 4bit
-	uint8_t src;  //SRC 8bit
-	uint8_t dst;  //DST 8bit
-	uint8_t prot; //prot 6bit
-} shackbus_id_t;
+	uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2);
 
-/*
-Protokolle:
-Register Control:
-  prot = 10;
-  len = 2byte
-  db0 = mode
-    0 = nothing
-    1 = LED
-    2 = ACT
-    4 = EE
-  db1 = channel
-  db2 = state
-  
-*/
+	typedef struct
+	{
+		uint8_t prio; //Priorität 3bit
+		uint8_t vlan; //VLAN 4bit
+		uint8_t src;  //SRC 8bit
+		uint8_t dst;  //DST 8bit
+		uint8_t prot; //prot 6bit
+	} shackbus_id_t;
 
+	uint8_t shackbus_id2sb(shackbus_id_t *shackbus, can_t *msg);
+	uint32_t shackbus_sb2id(shackbus_id_t *sb);
 
+#endif // USE_SHACKBUS
 #endif // CAN_H
+

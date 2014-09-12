@@ -4,18 +4,20 @@
  Remarks:        
  known Problems: none
  Version:        11.04.2012
- Description:    shackbus Interface
-
+ Description:    Allgemeines shackbus Interface
 
 ------------------------------------------------------------------------------*/
 
 #include "config.h"
 #if USE_SHACKBUS
 
+#include <stdint.h>
 #include <avr/io.h>
-#include "shackbus.h"
 
+#include "shackbus.h"
 #include "can.h"
+#include "enocean.h"
+#include "hmi.h"
 
 
 uint8_t shackbus_msg_send_flag = 0;
@@ -106,41 +108,7 @@ void shackbus_init(void)
 	send_msg_blink.data[0] = 3;
 	send_msg_blink.data[1] = 1;
 	send_msg_blink.data[2] = 0;
-
-
-
-
-
 }
-
-
-//uint8_t shackbus_convert_id(shackbus_id_t* shackbus, can_t msg)
-
-uint8_t shackbus_id2sb(shackbus_id_t* shackbus, can_t msg)
-{
-
-  shackbus->prio = (msg.id >> 26) & 0x07;
-  shackbus->vlan = (msg.id >> 22) & 0x0F;
-  shackbus->src  = (msg.id >> 14) & 0xFF;
-  shackbus->dst  = (msg.id >> 06) & 0xFF;
-  shackbus->prot = (msg.id >> 00) & 0x3F;
-
-	return 0;
-}
-
-uint32_t shackbus_sb2id(shackbus_id_t* sb)
-{
-    sb->prio &= 0x07;
-    sb->vlan &= 0x0F;
-    sb->src  &= 0xFF;
-    sb->dst  &= 0xFF;
-    sb->prot &= 0x3F;
-
-    return (uint32_t)((uint32_t)0x80000000+((uint32_t)sb->prio<<26)+((uint32_t)sb->vlan<<22)+((uint32_t)sb->src<<14)+((uint32_t)sb->dst<<6)+(uint32_t)sb->prot);
-}
-
-
-
 
 void shackbus_main(void)
 {
@@ -170,11 +138,7 @@ void shackbus_main(void)
 
 		//Send the new message
 		can_send_message(&msg);
-
-		return; // erstmal diese nachricht verschicken...
 	}
-
-
 
 
 	// Check if a new messag was received
@@ -190,7 +154,7 @@ void shackbus_main(void)
 				led_set(99,0);
 			}
 			shackbus_id_t shackbus_id;
-			shackbus_id2sb(&shackbus_id,msg);
+			shackbus_id2sb(&shackbus_id,&msg);
 
 			//send_msg_blink.id = (((((((3<<3)+4L) <<4)+5L) <<8)+6L) <<8)+9;  //Absender = 2   Empfänger = 1
 
@@ -282,6 +246,28 @@ void shackbus_tick(void)
 //	ka.data[1] = 42;
 				
 //	can_send_message(&ka);
+}
+
+uint8_t shackbus_id2sb(shackbus_id_t* shackbus, can_t* msg)
+{
+	shackbus->prio = (msg->id >> 26) & 0x07;
+	shackbus->vlan = (msg->id >> 22) & 0x0F;
+	shackbus->src  = (msg->id >> 14) & 0xFF;
+	shackbus->dst  = (msg->id >> 06) & 0xFF;
+	shackbus->prot = (msg->id >> 00) & 0x3F;
+
+	return 0;
+}
+
+uint32_t shackbus_sb2id(shackbus_id_t* sb)
+{
+	sb->prio &= 0x07;
+	sb->vlan &= 0x0F;
+	sb->src  &= 0xFF;
+	sb->dst  &= 0xFF;
+	sb->prot &= 0x3F;
+
+	return (uint32_t)((uint32_t)0x80000000+((uint32_t)sb->prio<<26)+((uint32_t)sb->vlan<<22)+((uint32_t)sb->src<<14)+((uint32_t)sb->dst<<6)+(uint32_t)sb->prot);
 }
 
 #endif // USE_SHACKBUS

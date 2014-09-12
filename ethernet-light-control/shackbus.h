@@ -1,22 +1,26 @@
 /*----------------------------------------------------------------------------
+ Copyright:      Ulrich Escher  mailto: code@myvdr.de
+ Author:         Ulrich Escher
+ Remarks:        
+ known Problems: none
+ Version:        11.04.2012
+ Description:    Header-Datei für das allgemeine CAN Interface für Shackbus
+
 ------------------------------------------------------------------------------*/
-#include "config.h"
 
 #ifndef SHACKBUS_H
 #define SHACKBUS_H
 
-	#include <avr/io.h>
-	#include <avr/pgmspace.h>
-	#include <avr/eeprom.h>
-	#include <string.h>
-	#include <util/delay.h>
-	
-	#include "stack.h"
-	#include "usart.h"
-	#include "cmd.h"
+#include "config.h"
+#if USE_SHACKBUS
 
 	#include "can.h"
 
+	void shackbus_init(void);
+	void shackbus_main(void);
+	void shackbus_tick(void);
+
+	uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2);
 
 	typedef struct
 	{
@@ -27,15 +31,9 @@
 		uint8_t prot; //prot 6bit
 	} shackbus_id_t;
 
-//D018149
-
-	uint8_t shackbus_id2sb(shackbus_id_t *shackbus, can_t msg);
+	uint8_t shackbus_id2sb(shackbus_id_t *shackbus, can_t *msg);
 	uint32_t shackbus_sb2id(shackbus_id_t *sb);
- 
 
-
-
-#endif
-
-
+#endif // USE_SHACKBUS
+#endif // CAN_H
 
