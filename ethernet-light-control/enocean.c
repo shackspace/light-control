@@ -69,7 +69,7 @@ void change_light_state(uint8_t addr, uint8_t state);
 void enocean_netInit(void)
 {
 	// calculate broadcast adress
-	*((uint32_t*)broadcast_ip) = (((*((unsigned long*)myip)) & (*((uint32_t*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
+	*((uint32_t*)broadcast_ip) = (((*((uint32_t*)myip)) & (*((uint32_t*)&netmask[0]))) | (~(*((uint32_t*)&netmask[0]))));
 
 	// remove any existing app from port
 	kill_udp_app(enocean_port);
@@ -180,7 +180,7 @@ void shackbus_main(void)
 		if (can_get_message(&msg))
 		{
 			shackbus_id_t shackbus_id;
-			shackbus_id2sb(&shackbus_id,msg);
+			shackbus_id2sb(&shackbus_id,&msg);
 
 			can2udp(&msg); //msg an udp weiterleiten
 
