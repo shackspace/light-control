@@ -118,7 +118,7 @@ void shackbus_main(void)
 		if (can_get_message(&msg))
 		{
 			shackbus_id_t shackbus_id;
-			shackbus_id2sb(&shackbus_id,msg);
+			shackbus_id2sb(&shackbus_id,&msg);
 
 			//prot=10 = Basis IO data[0]=10 = Ping
 			if (shackbus_id.prot == 10 && shackbus_id.dst == 8 && msg.data[0]==10)
