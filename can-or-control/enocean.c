@@ -57,8 +57,11 @@ void enocean_main(void) {
 
 		if (enocean_channel_state[i] & ENOCEAN_CHANNEL_ACT)
 		{
-			enocean_channel_state[i] &= ~ENOCEAN_CHANNEL_ACT;
-			enocean_packet_send(ENOCEAN_CHANNEL_OFFSET+i,enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);	
+			uint8_t ret = enocean_packet_send(ENOCEAN_CHANNEL_OFFSET+i,enocean_channel_state[i] & ENOCEAN_CHANNEL_STATUS);
+			if (ret == true)
+			{
+				enocean_channel_state[i] &= ~ENOCEAN_CHANNEL_ACT;
+			}
 		}
 
 		if (enocean_channel_state[i] & ENOCEAN_CHANNEL_EEPROM)
@@ -122,13 +125,16 @@ void enocean_tick(void) {
 
 // ----------------------------------------------------------------------------
 // create a enocean telegram and send over uart
-void enocean_packet_send(uint8_t addr, uint8_t cmd)
+uint8_t enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
 	_delay_ms(20);
 	uint8_t packet_tmp[14] = {0xa5, 0x5a, 0x0b, 0x05, 
 		((cmd+2) << 5 | 16),
 		0, 0, 0, 0, 0, 0,
 		(addr), 0x10, 0};
+
+	if (uart_size_free_buffer_tx() < sizeof(packet_tmp))
+		return false;
 
 	for (uint8_t i = 2; i < 13; i++) {
 		packet_tmp[13] += packet_tmp[i];
@@ -137,6 +143,8 @@ void enocean_packet_send(uint8_t addr, uint8_t cmd)
 	for (uint8_t i = 0; i < 14; i++) {
 		uart_putc(packet_tmp[i]);
 	}
+
+	return true;
 }
 
 
