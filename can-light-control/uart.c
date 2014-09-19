@@ -115,3 +115,17 @@ void uart_write(const char *str)
 	}
 }
 
+//----------------------------------------------------------------------------
+//Freier Speicher im Sendepuffer
+uint8_t uart_size_free_buffer_tx(void)
+{
+	return (uart_outfifo.size - uart_outfifo.count);
+}
+
+//----------------------------------------------------------------------------
+//Freier Speicher im Empfangspuffer
+uint8_t uart_size_free_buffer_rx(void)
+{
+	return (uart_infifo.size - uart_infifo.count);
+}
+
