@@ -25,10 +25,10 @@
 	
 	#include "uart.h"
 
-	#define ENOCEAN_CHANNEL_COUNT           12
-	#define ENOCEAN_CHANNEL_OFFSET          100
+	#define ENOCEAN_CHANNEL_COUNT           4
+	#define ENOCEAN_CHANNEL_OFFSET          140
 
-	#define ENOCEAN_CHANNEL_EEPROM_STORE    	60
+	#define ENOCEAN_CHANNEL_EEPROM_STORE    60
 
 	#define ENOCEAN_CHANNEL_STATUS  1
 	#define ENOCEAN_CHANNEL_ACT     2

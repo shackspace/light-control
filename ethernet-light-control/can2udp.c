@@ -41,7 +41,7 @@
 
 #include "mem-check.h"
 
-#include "canframestorage.h"
+#include "framestorage.h"
 
 // ----------------------------------------------------------------------------
 // default values
@@ -163,10 +163,10 @@ void can2udp_ethernet(uint8_t mode);
 void can2udp(can_t *msg)
 {
 
-	uint8_t nextfreeid = canframestorage_item_next();
+	uint8_t nextfreeid = framestorage_item_next();
 	if (fifo_get_count(&can_outfifo) <= 8 && nextfreeid != 255 )
 	{
-		can_t_2_can_frame_t(msg, &canframestorage_data[nextfreeid]);
+		can_t_2_can_frame_t(msg, &framestorage_data[nextfreeid]);
 		fifo_put (&can_outfifo,nextfreeid);
 	} else {
 		if (fifo_get_count(&can_outfifo) > 8) lost_can_frames++;
@@ -189,9 +189,9 @@ uint8_t can2udp_get_next_message(uint8_t* msg)
 	if (fifo_get_count(&can_outfifo) > 0)
 	{
 		uint8_t cur_nr = fifo_get (&can_outfifo);
-		canframestorage_data[cur_nr].state = 0;
-		memcpy(msg, &canframestorage_data[cur_nr], sizeof(can_frame_t));
-		canframestorage_item_clear(cur_nr);
+		framestorage_data[cur_nr].state = 0;
+		memcpy(msg, &framestorage_data[cur_nr], sizeof(can_frame_t));
+		framestorage_item_clear(cur_nr);
 
 		return 1;
 	}
@@ -274,8 +274,8 @@ void can2udp_main(void) {
 
 		memset(&udp_snd_can_frame,0,sizeof(can_t));    
 		uint8_t cur_nr = fifo_get (&can_infifo);
-		can_frame_t_2_can_t(&canframestorage_data[cur_nr], &udp_snd_can_frame);
-		canframestorage_item_clear(cur_nr);
+		can_frame_t_2_can_t(&framestorage_data[cur_nr], &udp_snd_can_frame);
+		framestorage_item_clear(cur_nr);
 
 		if ( can_send_message(&udp_snd_can_frame) == 0 )
 			lost_can_frames++;
@@ -444,11 +444,11 @@ void can2udp_get(unsigned char index) {
 
 		//	change_light_state(udp_snd_can_frame.data[0],udp_snd_can_frame.data[1]);
 
-			uint8_t nextfreeid = canframestorage_item_next();
+			uint8_t nextfreeid = framestorage_item_next();
 			if (fifo_get_count(&can_infifo) <= 8 && nextfreeid != 255 )
 			{
 				udp_rec_can_frame.state = 1;
-				memcpy(&canframestorage_data[nextfreeid], &udp_rec_can_frame, sizeof(can_frame_t));
+				memcpy(&framestorage_data[nextfreeid], &udp_rec_can_frame, sizeof(can_frame_t));
 				fifo_put (&can_infifo,nextfreeid);
 			} else
 				lost_can_frames3++;

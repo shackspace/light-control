@@ -17,10 +17,7 @@
 #include "shackbus.h"
 #include "can.h"
 #include "enocean.h"
-#include "hmi.h"
 
-
-uint8_t shackbus_msg_send_flag = 0;
 
 const uint8_t PROGMEM can_filter[] = 
 {
@@ -112,35 +109,6 @@ void shackbus_init(void)
 
 void shackbus_main(void)
 {
-
-	if (shackbus_msg_send_flag)
-	{
-		can_t msg;
-		shackbus_id_t shackbus_id;
-
-
-		shackbus_msg_send_flag = 0;
-
-		shackbus_id.prio = 3;
-		shackbus_id.vlan = 4;
-		shackbus_id.dst  = 255;
-		shackbus_id.src  = 6;
-		shackbus_id.prot = 13;
-
-		msg.id = shackbus_sb2id(&shackbus_id);
-		msg.length = 1;
-		msg.flags.extended = 1;
-
-		if (MAINSWITCH_STATE)
-			msg.data[0] = 1;
-		else
-			msg.data[0] = 0;
-
-		//Send the new message
-		can_send_message(&msg);
-	}
-
-
 	// Check if a new messag was received
 	if (can_check_message())
 	{
@@ -149,31 +117,16 @@ void shackbus_main(void)
 		// Try to read the message
 		if (can_get_message(&msg))
 		{
-			if (msg.id == 0x1FF && msg.flags.extended == 1)
-			{
-				led_set(99,0);
-			}
 			shackbus_id_t shackbus_id;
 			shackbus_id2sb(&shackbus_id,&msg);
 
-			//send_msg_blink.id = (((((((3<<3)+4L) <<4)+5L) <<8)+6L) <<8)+9;  //Absender = 2   Empfänger = 1
-
-			if (shackbus_id.prot == 9 && shackbus_id.dst == 6 && msg.data[0]<12)
-			{
-                		if (msg.data[1]==1) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_SS);
-                		if (msg.data[1]==0) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_CS);
-
-				//Send the new message
-				//shackbus_send_msg(msg.data[0], msg.data[1]);
-			}
-
 			//prot=10 = Basis IO data[0]=10 = Ping
-			if (shackbus_id.prot == 10 && shackbus_id.dst == 6 && msg.data[0]==10)
+			if (shackbus_id.prot == 10 && shackbus_id.dst == 8 && msg.data[0]==10)
 			{
 				shackbus_id.prio = 3;
 				shackbus_id.vlan = 4;
 				shackbus_id.dst  = shackbus_id.src;
-				shackbus_id.src  = 6;
+				shackbus_id.src  = 8;
 				shackbus_id.prot = 10;
 
 				msg.id = shackbus_sb2id(&shackbus_id);
@@ -183,23 +136,20 @@ void shackbus_main(void)
 
 			    	//Send the new message
 				can_send_message(&msg);
-
-				void reset_visualisation(void);
-				reset_visualisation();
 			}
 
 			/* prot=11 = PowerManagement data[0]=1 =on/off data[1]=channel data[2]=state */
-			/* channel 120 = Hauptschalter      */
 			/* channel 140 0x8c = DLE Dusche    */
 			/* channel 141 0x8d = DLE E-Lab     */
 			/* channel 142 0x8e = Optionsraeume  */
 			/* channel 143 0x8f = Kueche         */
-			if (shackbus_id.prot == 11 && shackbus_id.dst == 6 && msg.data[0]==1)
+			if (shackbus_id.prot == 11 && shackbus_id.dst == 6 && msg.data[0]==1 \
+				&& msg.data[1] >= 140 && msg.data[1] <= 143)
 			{
 				shackbus_id.prio = 3;
 				shackbus_id.vlan = 4;
 				shackbus_id.dst  = shackbus_id.src;
-				shackbus_id.src  = 6;
+				shackbus_id.src  = 8;
 				shackbus_id.prot = 11;
 
 				msg.id = shackbus_sb2id(&shackbus_id);
@@ -210,7 +160,9 @@ void shackbus_main(void)
 
 				/* Send the message */
 				can_send_message(&msg);
-				enocean_packet_send(msg.data[1], msg.data[2]);
+
+				if (msg.data[2]==1) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_SS);
+				if (msg.data[2]==0) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_CS);
 			}
 		}
 	}
@@ -229,9 +181,6 @@ uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
 
 void shackbus_tick(void)
 {
-	shackbus_msg_send_flag = 1;
-
-
 //	can_t ka;
 //	shackbus_id_t ka_id;
 //	ka_id.prio = 3;

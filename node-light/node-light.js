@@ -13,6 +13,7 @@ app.use(require('body-parser').json());
 
 app.all('*', function(req, res, next) {
 	res.set({'Content-Type': 'application/json; charset=utf-8', 'cache-control': 'max-age=0, no-cache, no-store, must-revalidate'});
+	res.set({'Access-Control-Allow-Origin': '*'});
 	console.log(req.method + ' ' + req.url);
 	next();
 });
@@ -41,6 +42,12 @@ app.put(/^\/power\/([1-5])$/, function(req, res) {
     sendUDPPower(req.params[0],req.body.state);
 });
 
+app.options('*', function(req, res) {
+	res.set({'Access-Control-Allow-Headers': 'access-control-allow-origin, Content-Type, X-Requested-With'});
+	res.set({'Access-Control-Allow-Methods': 'GET,PUT'});
+	res.send(200);
+});
+
 app.all('*', function(req, res) {
 	res.send(405, 'Method not allowed');
 	console.log('/: 405');
@@ -61,6 +68,8 @@ function exitHandler(options, err) {
 }
 //catches ctrl+c event
 process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+//catches sigterm event
+process.on('SIGTERM', exitHandler.bind(null, {exit:true}));
 //catches uncaught exceptions
 process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
 
@@ -83,6 +92,8 @@ socket.bind(2342, function() {
 
 
 receiveUDP = function (data) {
+        console.log('receiveUDP Data...');
+
 	light_lut = new Array(1,2,3,4,6,7,8,5);
 	light_lut_state = new Array('off','on');
 
@@ -90,6 +101,31 @@ receiveUDP = function (data) {
 		light_state[(light_lut[(data[0])])].state = light_lut_state[(data[1])];
 		console.log('receiveUDP: ' + data[0] + ' => ' + light_lut[(data[0])] + ' ' + data[1] + ' => ' + light_lut_state[(data[1])] );
 	}
+
+	power_lut = new Array(120,140,141,142,143);
+	power_lut_state = new Array('off','on');
+
+	if (data.length == 2 && data[0] == 10 && data[1] <= 1) {
+		power_state[1].state = power_lut_state[(data[1])];
+		console.log('receiveUDP: ' + data[0] + ' => ' + '120' + ' ' + data[1] + ' => ' + power_lut_state[(data[1])] );
+	}
+	if (data.length == 2 && data[0] == 140 && data[1] <= 1) {
+		power_state[2].state = power_lut_state[(data[1])];
+		console.log('receiveUDP: ' + data[0] + ' => ' + '140' + ' ' + data[1] + ' => ' + power_lut_state[(data[1])] );
+	}
+	if (data.length == 2 && data[0] == 141 && data[1] <= 1) {
+		power_state[3].state = power_lut_state[(data[1])];
+		console.log('receiveUDP: ' + data[0] + ' => ' + '141' + ' ' + data[1] + ' => ' + power_lut_state[(data[1])] );
+	}
+	if (data.length == 2 && data[0] == 142 && data[1] <= 1) {
+		power_state[4].state = power_lut_state[(data[1])];
+		console.log('receiveUDP: ' + data[0] + ' => ' + '142' + ' ' + data[1] + ' => ' + power_lut_state[(data[1])] );
+	}
+	if (data.length == 2 && data[0] == 143 && data[1] <= 1) {
+		power_state[5].state = power_lut_state[(data[1])];
+		console.log('receiveUDP: ' + data[0] + ' => ' + '143' + ' ' + data[1] + ' => ' + power_lut_state[(data[1])] );
+	}
+
 }
 
 

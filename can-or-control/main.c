@@ -37,45 +37,9 @@
 #include "uart.h"
 #include "enocean_parser.h"
 #include "hmi.h"
-
+#include "power_mgt.h"
 
 #include "shackbus.h"
-
-
-void reset_visualisation(void)
-{
-led_set(99,1);
-_delay_ms(40);
-led_set(99,0);
-led_set(0,1);
-_delay_ms(40);
-_delay_ms(20);
-_delay_ms(20);
-led_set(0,0);
-led_set(1,1);
-_delay_ms(40);
-_delay_ms(20);
-_delay_ms(20);
-led_set(1,0);
-led_set(2,1);
-_delay_ms(20);
-_delay_ms(40);
-_delay_ms(20);
-led_set(2,0);
-led_set(3,1);
-_delay_ms(40);
-_delay_ms(20);
-_delay_ms(20);
-led_set(3,0);
-led_set(4,1);
-_delay_ms(40);
-_delay_ms(20);
-_delay_ms(20);
-led_set(4,0);
-_delay_ms(40);
-_delay_ms(20);
-}
-
 
 //----------------------------------------------------------------------------
 //Hier startet das Hauptprogramm
@@ -106,8 +70,9 @@ int main(void)
 		shackbus_init();
 	#endif
 
-	reset_visualisation();
-
+	#if USE_POWER_MGT
+		power_mgt_init();
+	#endif
 
 	//Globale Interrupts einschalten
 	sei(); 
@@ -131,6 +96,12 @@ int main(void)
 			sei();
 		#endif
 		
+		#if USE_POWER_MGT
+			cli();
+			power_mgt_main();
+			sei();
+		#endif
+		
 		#if USE_SHACKBUS
 			cli();
 			shackbus_main();
@@ -149,34 +120,6 @@ int main(void)
 			sei();
 		#endif
 
-		//if (merker)
-		//  if(can_check_free_buffer())
-		//	can_send_message(&send_test_msg);
-
-		if (merker)
-		{
-			merker=0;
-			static uint8_t wd_flag = 0;
-			wd_flag ^= 1;
-//            if (wd_flag==1) group_state_set(3,ENOCEAN_CHANNEL_SA_SS);
-//            if (wd_flag==0) group_state_set(3,ENOCEAN_CHANNEL_SA_CS);
-		}
-
-
-			cli();		
-		can_error_register_t aktuelle_fehler = can_read_error_register();
-		if (aktuelle_fehler.rx)
-		{
-//			group_state_set(2,ENOCEAN_CHANNEL_SA_SS);
-		}
-		if (aktuelle_fehler.tx)
-		{
-//			group_state_set(3,ENOCEAN_CHANNEL_SA_SS);
-		}
-			sei();		
-
-		
-		
     }//while (1)
 		
 return(0);

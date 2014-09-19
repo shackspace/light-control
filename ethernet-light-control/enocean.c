@@ -69,7 +69,7 @@ void change_light_state(uint8_t addr, uint8_t state);
 void enocean_netInit(void)
 {
 	// calculate broadcast adress
-	*((uint32_t*)broadcast_ip) = (((*((unsigned long*)myip)) & (*((uint32_t*)&netmask[0]))) | (~(*((unsigned long*)&netmask[0]))));
+	*((uint32_t*)broadcast_ip) = (((*((uint32_t*)myip)) & (*((uint32_t*)&netmask[0]))) | (~(*((uint32_t*)&netmask[0]))));
 
 	// remove any existing app from port
 	kill_udp_app(enocean_port);
@@ -152,9 +152,9 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		create_new_udp_packet(2, 2341, 2341, 0xffffffff); //zweiter Port damit auf einem Rechner zwei Programme die events abfangen koennen
 	}	
 
-	if (addr == 120)
+	if (addr == 120 || ( addr >= 140 && addr <= 143))
 	{
-		addr = 10;
+		if (addr == 120) addr = 10;
 
 		eth_buffer[UDP_DATA_START+0]=addr;
 		eth_buffer[UDP_DATA_START+1]=cmd;
@@ -180,7 +180,7 @@ void shackbus_main(void)
 		if (can_get_message(&msg))
 		{
 			shackbus_id_t shackbus_id;
-			shackbus_id2sb(&shackbus_id,msg);
+			shackbus_id2sb(&shackbus_id,&msg);
 
 			can2udp(&msg); //msg an udp weiterleiten
 
@@ -188,6 +188,14 @@ void shackbus_main(void)
 			if (shackbus_id.prot == 9 && msg.data[0]<12 )
 			{
 				send_udp_msg(msg.data[0], msg.data[1]);
+			}
+			if (shackbus_id.prot == 9 && msg.data[0]==120 )
+			{
+				send_udp_msg(msg.data[0], msg.data[1]);
+			}
+			if (shackbus_id.prot == 11 && msg.data[0]==1 )
+			{
+				send_udp_msg(msg.data[1], msg.data[2]);
 			}
 		}
 	}

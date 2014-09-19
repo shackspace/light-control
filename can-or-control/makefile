@@ -32,7 +32,7 @@
 # MCU name
 
 #MCU = atmega32
-MCU = atmega328p
+MCU = atmega8
 
 #MCU = atmega644
 
@@ -59,6 +59,12 @@ ifeq ($(MCU), atmega32)
 	HEX_FILE_NAME = MEGA32
 endif
 
+#Fuse settings for ATmega8
+ifeq ($(MCU), atmega8)
+	FUSE_BITS = -u -U lfuse:w:0xbe:m -U hfuse:w:0xd2:m
+	HEX_FILE_NAME = MEGA8
+endif
+
 #Fuse settings for ATmega128 zurzeit nur für RTL8019-Karten
 ifeq ($(MCU), atmega128)
 	#FUSE_BITS = -u -U lfuse:w:0xff:m -U hfuse:w:0xcf:m
@@ -69,7 +75,7 @@ endif
 FORMAT = ihex
 
 # Target file name (without extension).
-TARGET = Hexfiles/Webserver_$(HEX_FILE_NAME)
+TARGET = can-or-control
 
 # Optimization level, can be [0, 1, 2, 3, s]. 0 turns off optimization.
 # (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
@@ -77,15 +83,15 @@ OPT = s
 
 # If there is more than one source file, append them above, or modify and
 # uncomment the following:
-SRC =  main.c usart.c stack.c timer.c cmd.c
+SRC =  main.c timer.c
 
-SRC += networkcard/enc28j60.c networkcard/rtl8019.c
+SRC += enocean.c
 
-SRC += dnsc.c dhcpc.c
+SRC += fifo.c uart.c enocean_parser.c hmi.c
 
-SRC += enocean.c can2udp.c shackbus.c fifo.c framestorage.c
+SRC += shackbus.c
 
-SRC += mem-check.c
+SRC += power_mgt.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -156,7 +162,8 @@ LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 # -lm = math library
 LDFLAGS += -lm
 
-LDFLAGS += -L. -lcan        # hinzufügen
+   
+LDFLAGS += -L. -lcan
 
 
 
@@ -177,6 +184,7 @@ AVRDUDE_PROGRAMMER = stk500v2
 #AVRDUDE_PORT = com1	   # programmer connected to serial device
 AVRDUDE_PORT = /dev/ttyUSB0	       # programmer connected to parallel port
 
+#AVRDUDE_WRITE_FLASH = -D -U flash:w:$(TARGET).hex $(FUSE_BITS)
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex $(FUSE_BITS)
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
@@ -279,9 +287,14 @@ begin:
 	@echo
 	@echo $(MSG_BEGIN)
 
-compile_libcan:
+compile_libcan: libcan_make libcan.a
+
+libcan_make:
 	$(MAKE) -C avr-can-lib/src/
+
+libcan.a: avr-can-lib/src/libcan.a
 	$(COPY) avr-can-lib/src/libcan.a libcan.a
+
 
 clean_libcan:
 	$(MAKE) -C avr-can-lib/src/ clean
@@ -369,7 +382,7 @@ program: compile_libcan $(TARGET).hex $(TARGET).eep
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
 .PRECIOUS : $(OBJ)
-%.elf: $(OBJ)
+%.elf: $(OBJ) libcan.a
 	@echo
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
