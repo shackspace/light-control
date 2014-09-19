@@ -32,6 +32,11 @@ bool can_check_message(void)
 	return false;
 };
 
+extern uint8_t mcp2515_read_status(uint8_t type);
+extern uint8_t mcp2515_read_status(uint8_t type)
+{
+	return 2;
+}
 
 uint8_t can_get_message(can_t *msg)
 {
