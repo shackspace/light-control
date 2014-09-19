@@ -47,11 +47,13 @@ TEST enocean_case(void) {
 	ASSERT(enocean_check_uart_output(102, 0) == true);
 	ASSERT(enocean_check_uart_output(103, 0) == true);
 	ASSERT(enocean_check_uart_output(104, 0) == true);
+	enocean_main();
 	ASSERT(enocean_check_uart_output(105, 0) == true);
 	ASSERT(enocean_check_uart_output(106, 0) == true);
 	ASSERT(enocean_check_uart_output(107, 0) == true);
 	ASSERT(enocean_check_uart_output(108, 0) == true);
 	ASSERT(enocean_check_uart_output(109, 0) == true);
+	enocean_main();
 	ASSERT(enocean_check_uart_output(110, 0) == true);
 	ASSERT(enocean_check_uart_output(111, 0) == true);
 	ASSERT(enocean_check_uart_output(0, 0) == false);
@@ -80,11 +82,13 @@ TEST enocean_case(void) {
 	ASSERT(enocean_check_uart_output(102, 0) == true);
 	ASSERT(enocean_check_uart_output(103, 1) == true);
 	ASSERT(enocean_check_uart_output(104, 0) == true);
+	enocean_main();
 	ASSERT(enocean_check_uart_output(105, 0) == true);
 	ASSERT(enocean_check_uart_output(106, 0) == true);
 	ASSERT(enocean_check_uart_output(107, 0) == true);
 	ASSERT(enocean_check_uart_output(108, 0) == true);
 	ASSERT(enocean_check_uart_output(109, 0) == true);
+	enocean_main();
 	ASSERT(enocean_check_uart_output(110, 0) == true);
 	ASSERT(enocean_check_uart_output(111, 0) == true);
 	ASSERT(fifo_get_count(&uart_outfifo) == 0);
