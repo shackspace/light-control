@@ -18,8 +18,8 @@
   #define UART_BAUDRATE	9600UL
 #endif
 
-#define UART_FIFOSIZE_IN	100
-#define UART_FIFOSIZE_OUT	80
+#define UART_FIFOSIZE_IN	28
+#define UART_FIFOSIZE_OUT	28
 
 // FIFO-Objekte und Puffer für die Ein- und Ausgabe 
 
