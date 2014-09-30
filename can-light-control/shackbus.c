@@ -181,11 +181,8 @@ void shackbus_main(void)
 				msg.data[0] = 11;
 				msg.data[1] = msg.data[1];
 
-			    	//Send the new message
-				can_send_message(&msg);
-
-				void reset_visualisation(void);
-				reset_visualisation();
+				//Send the new message
+				can_send_message_fifo(&msg);
 			}
 
 			/* prot=11 = PowerManagement data[0]=1 =on/off data[1]=channel data[2]=state */
