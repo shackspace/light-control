@@ -1,4 +1,4 @@
-# WinAVR Sample makefile written by Eric B. Weddington, Jörg Wunsch, et al.
+# WinAVR Sample makefile written by Eric B. Weddington, JÃ¶rg Wunsch, et al.
 # Released to the Public Domain
 # Please read the make user manual!
 #
@@ -38,7 +38,7 @@ MCU = atmega328p
 
 #MCU = atmega644p
 
-#ATmega 128 wird von mir nicht unterstützt oder nur teilweise! 
+#ATmega 128 wird von mir nicht unterstÃ¼tzt oder nur teilweise! 
 #MCU = atmega128  
 
 #Fuse settings for ATmega644
@@ -59,7 +59,7 @@ ifeq ($(MCU), atmega32)
 	HEX_FILE_NAME = MEGA32
 endif
 
-#Fuse settings for ATmega128 zurzeit nur für RTL8019-Karten
+#Fuse settings for ATmega128 zurzeit nur fÃ¼r RTL8019-Karten
 ifeq ($(MCU), atmega128)
 	#FUSE_BITS = -u -U lfuse:w:0xff:m -U hfuse:w:0xcf:m
 	HEX_FILE_NAME = MEGA128
@@ -156,7 +156,7 @@ LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
 # -lm = math library
 LDFLAGS += -lm
 
-LDFLAGS += -L. -lcan        # hinzufügen
+LDFLAGS += -L. -lcan        # hinzufÃ¼gen
 
 
 
@@ -279,9 +279,14 @@ begin:
 	@echo
 	@echo $(MSG_BEGIN)
 
-compile_libcan:
+compile_libcan: libcan_make libcan.a
+
+libcan_make:
 	$(MAKE) -C avr-can-lib/src/
+
+libcan.a: avr-can-lib/src/libcan.a
 	$(COPY) avr-can-lib/src/libcan.a libcan.a
+
 
 clean_libcan:
 	$(MAKE) -C avr-can-lib/src/ clean
@@ -369,7 +374,7 @@ program: compile_libcan $(TARGET).hex $(TARGET).eep
 # Link: create ELF output file from object files.
 .SECONDARY : $(TARGET).elf
 .PRECIOUS : $(OBJ)
-%.elf: $(OBJ)
+%.elf: $(OBJ) libcan.a
 	@echo
 	@echo $(MSG_LINKING) $@
 	$(CC) $(ALL_CFLAGS) $(OBJ) --output $@ $(LDFLAGS)
@@ -404,7 +409,7 @@ clean: begin clean_list clean_libcan finished end
 clean_list :
 	@echo
 	@echo $(MSG_CLEANING)
-#	$(REMOVE) $(TARGET).hex
+	$(REMOVE) $(TARGET).hex
 	$(REMOVE) $(TARGET).eep
 	$(REMOVE) $(TARGET).obj
 	$(REMOVE) $(TARGET).cof
@@ -419,6 +424,7 @@ clean_list :
 	$(REMOVE) $(LST)
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
+	$(REMOVE) libcan.a
 
 
 # Automatically generate C source code dependencies. 
