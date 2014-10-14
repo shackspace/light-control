@@ -76,7 +76,7 @@ void shackbus_init(void)
 
 
 	// Create a test messsage
-	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+9L);  //Absender = 2   Empfänger = 1
+	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+9L);
 	send_msg_blink_ret.flags.rtr = 0;
 
 	send_msg_blink_ret.flags.extended = 1;
@@ -99,7 +99,7 @@ void shackbus_init(void)
 
 	// Create a test messsage
 
-	send_msg_blink.id = 0x00020109;  //Absender = 2   Empfänger = 1
+	send_msg_blink.id = 0x00020109;
 	send_msg_blink.flags.rtr = 0;
 
 	send_msg_blink.flags.extended = 1;
@@ -156,7 +156,7 @@ void shackbus_main(void)
 			shackbus_id_t shackbus_id;
 			shackbus_id2sb(&shackbus_id,&msg);
 
-			//send_msg_blink.id = (((((((3<<3)+4L) <<4)+5L) <<8)+6L) <<8)+9;  //Absender = 2   Empfänger = 1
+			//send_msg_blink.id = (((((((3<<3)+4L) <<4)+5L) <<8)+6L) <<8)+9;
 
 			if (shackbus_id.prot == 9 && shackbus_id.dst == 6 && msg.data[0]<12)
 			{
