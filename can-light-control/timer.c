@@ -154,5 +154,12 @@ void timer_init (void)
 		#endif //USE_SHACKBUS
 
 	}
+
+	static uint16_t    prescaler_100ms = 333;
+	if(!prescaler_100ms--)
+	{
+		prescaler_100ms = 19;
+
+	}
 }
 
