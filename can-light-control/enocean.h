@@ -50,7 +50,7 @@
 	void enocean_init(void);
 	void enocean_main(void);
 	void enocean_tick(void);
-	void enocean_packet_send(uint8_t addr, uint8_t status);
+	uint8_t enocean_packet_send(uint8_t addr, uint8_t status);
 
 	void enocean_state_set(uint8_t channel, uint8_t state);
 	uint8_t enocean_state_get(uint8_t channel);

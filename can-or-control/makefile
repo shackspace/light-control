@@ -1,4 +1,4 @@
-# WinAVR Sample makefile written by Eric B. Weddington, Jörg Wunsch, et al.
+# WinAVR Sample makefile written by Eric B. Weddington, JÃ¶rg Wunsch, et al.
 # Released to the Public Domain
 # Please read the make user manual!
 #
@@ -38,7 +38,7 @@ MCU = atmega8
 
 #MCU = atmega644p
 
-#ATmega 128 wird von mir nicht unterstützt oder nur teilweise! 
+#ATmega 128 wird von mir nicht unterstÃ¼tzt oder nur teilweise! 
 #MCU = atmega128  
 
 #Fuse settings for ATmega644
@@ -65,7 +65,7 @@ ifeq ($(MCU), atmega8)
 	HEX_FILE_NAME = MEGA8
 endif
 
-#Fuse settings for ATmega128 zurzeit nur für RTL8019-Karten
+#Fuse settings for ATmega128 zurzeit nur fÃ¼r RTL8019-Karten
 ifeq ($(MCU), atmega128)
 	#FUSE_BITS = -u -U lfuse:w:0xff:m -U hfuse:w:0xcf:m
 	HEX_FILE_NAME = MEGA128
@@ -417,7 +417,7 @@ clean: begin clean_list clean_libcan finished end
 clean_list :
 	@echo
 	@echo $(MSG_CLEANING)
-#	$(REMOVE) $(TARGET).hex
+	$(REMOVE) $(TARGET).hex
 	$(REMOVE) $(TARGET).eep
 	$(REMOVE) $(TARGET).obj
 	$(REMOVE) $(TARGET).cof
@@ -432,6 +432,7 @@ clean_list :
 	$(REMOVE) $(LST)
 	$(REMOVE) $(SRC:.c=.s)
 	$(REMOVE) $(SRC:.c=.d)
+	$(REMOVE) libcan.a
 
 
 # Automatically generate C source code dependencies. 

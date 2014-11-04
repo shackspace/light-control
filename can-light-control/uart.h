@@ -32,6 +32,9 @@ extern void uart_init(void);
 extern uint8_t uart_putc (const uint8_t);
 extern void uart_write(const char*);
 
+extern uint8_t uart_size_free_buffer_tx(void);
+extern uint8_t uart_size_free_buffer_rx(void);
+
 #define DIRECTION_CONTROL	0
 
 #endif /* _UART_H_ */

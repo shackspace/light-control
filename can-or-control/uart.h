@@ -18,8 +18,8 @@
   #define UART_BAUDRATE	9600UL
 #endif
 
-#define UART_FIFOSIZE_IN	100
-#define UART_FIFOSIZE_OUT	80
+#define UART_FIFOSIZE_IN	28
+#define UART_FIFOSIZE_OUT	28
 
 // FIFO-Objekte und Puffer für die Ein- und Ausgabe 
 
@@ -31,6 +31,9 @@ extern void uart_init(void);
 
 extern uint8_t uart_putc (const uint8_t);
 extern void uart_write(const char*);
+
+extern uint8_t uart_size_free_buffer_tx(void);
+extern uint8_t uart_size_free_buffer_rx(void);
 
 #define DIRECTION_CONTROL	0
 
