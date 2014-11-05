@@ -23,10 +23,7 @@ void shackbus_init(void)
 
 }
 
-//void shackbus_main(void)
-{
-
-}
+//void shackbus_main(void) {}
 
 void shackbus_tick(void)
 {
