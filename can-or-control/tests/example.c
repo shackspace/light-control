@@ -45,6 +45,7 @@ TEST enocean_case(void) {
 	enocean_main();
 	ASSERT(enocean_check_uart_output(140, 0) == true);
 	ASSERT(enocean_check_uart_output(141, 0) == true);
+	enocean_main();
 	ASSERT(enocean_check_uart_output(142, 0) == true);
 	ASSERT(enocean_check_uart_output(143, 0) == true);
 	ASSERT(enocean_check_uart_output(0, 0) == false);
@@ -70,6 +71,7 @@ TEST enocean_case(void) {
 	enocean_main();
 	ASSERT(enocean_check_uart_output(140, 1) == true);
 	ASSERT(enocean_check_uart_output(141, 0) == true);
+	enocean_main();
 	ASSERT(enocean_check_uart_output(142, 0) == true);
 	ASSERT(enocean_check_uart_output(143, 1) == true);
 	ASSERT(fifo_get_count(&uart_outfifo) == 0);
@@ -168,8 +170,8 @@ TEST shackbus_ping_case(void) {
 
 
 TEST shackbus_channel_case(uint8_t channel) {
-	extern fifo_t can_outfifo;
-	extern fifo_t can_infifo;
+	extern fifo_t mock_can_outfifo;
+	extern fifo_t mock_can_infifo;
 	uart_init();
 	enocean_mock_init();
 	enocean_init();
@@ -177,6 +179,7 @@ TEST shackbus_channel_case(uint8_t channel) {
 	enocean_main();
 	ASSERT(enocean_check_uart_output(140, 0) == true);
 	ASSERT(enocean_check_uart_output(141, 0) == true);
+	enocean_main();
 	ASSERT(enocean_check_uart_output(142, 0) == true);
 	ASSERT(enocean_check_uart_output(143, 0) == true);
 	ASSERT(fifo_get_count(&uart_outfifo) == 0);
@@ -184,11 +187,11 @@ TEST shackbus_channel_case(uint8_t channel) {
 
 	shackbus_init();
 	can_mock_init();
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 	shackbus_main();
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 	can_t send_msg_cmp;
 	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+11L);  //prio vlan src dst prot
@@ -202,13 +205,13 @@ TEST shackbus_channel_case(uint8_t channel) {
 	uint8_t can_input_message(can_t *msg);
 	can_input_message(&send_msg_cmp);
 	ASSERT(can_check_message());
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 15);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 15);
 
 	shackbus_main();
 
-	ASSERT(fifo_get_count(&can_outfifo) == 30);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 30);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 
 	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(8L<<14)+(5L<<6)+11L);  //prio vlan src dst prot
@@ -219,8 +222,8 @@ TEST shackbus_channel_case(uint8_t channel) {
 	bool can_compare_sended(can_t msg);
 	ASSERT(can_compare_sended(send_msg_cmp));
 
-	ASSERT(fifo_get_count(&can_outfifo) == 15);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 15);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 
 	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+11L);  //Absender = 2   Empfänger = 1
@@ -235,8 +238,8 @@ TEST shackbus_channel_case(uint8_t channel) {
 	ASSERT(can_compare_sended(send_msg_cmp));
 
 
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
 	ASSERT( enocean_state_get(channel) == 1);
 
