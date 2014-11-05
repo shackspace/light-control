@@ -17,6 +17,7 @@
 #include "shackbus.h"
 #include "can.h"
 #include "enocean.h"
+#include "power_mgt.h"
 
 
 const uint8_t PROGMEM can_filter[] = 
@@ -73,14 +74,15 @@ void shackbus_init(void)
 
 
 	// Create a test messsage
-	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+9L);  //Absender = 2   Empfänger = 1
+
+	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+11L);  //Absender = 2   Empfänger = 1
 	send_msg_blink_ret.flags.rtr = 0;
 
 	send_msg_blink_ret.flags.extended = 1;
 
 	send_msg_blink_ret.length  = 3;
-	send_msg_blink_ret.data[0] = 3;
-	send_msg_blink_ret.data[1] = 1;
+	send_msg_blink_ret.data[0] = 0;
+	send_msg_blink_ret.data[1] = 0;
 	send_msg_blink_ret.data[2] = 0;
 
 
@@ -134,7 +136,7 @@ void shackbus_main(void)
 				msg.data[0] = 11;
 				msg.data[1] = msg.data[1];
 
-			    	//Send the new message
+				//Send the new message
 				can_send_message(&msg);
 			}
 
@@ -164,6 +166,74 @@ void shackbus_main(void)
 				if (msg.data[2]==1) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_SS);
 				if (msg.data[2]==0) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_CS);
 			}
+
+
+
+			/* prot=11 = PowerManagement data[0]=0 =on/off data[1]=channel data[2]=state */
+			/* channel 140 0x8c = DLE Dusche    */
+			/* channel 141 0x8d = DLE E-Lab     */
+			/* channel 142 0x8e = Optionsraeume  */
+			/* channel 143 0x8f = Kueche         */
+			if (shackbus_id.prot == 11 && shackbus_id.dst == 6 && msg.data[0]==0 \
+				&& msg.data[1] >= 140 && msg.data[1] <= 143)
+			{
+				shackbus_id.prio = 3;
+				shackbus_id.vlan = 4;
+				shackbus_id.dst  = shackbus_id.src;
+				shackbus_id.src  = 8;
+				shackbus_id.prot = 11;
+
+				msg.id = shackbus_sb2id(&shackbus_id);
+				msg.length = 3;
+				msg.data[0] = 0;
+				msg.data[1] = msg.data[1];
+				msg.data[2] = msg.data[2];
+
+				/* Send the message */
+				can_send_message(&msg);
+
+				void power_mgt_set_input_1(uint8_t _channel, uint8_t _state);
+				void power_mgt_set_wait_off(uint8_t _channel, uint16_t _value);
+				power_mgt_set_input_1(msg.data[1]-140, msg.data[2]);
+				power_mgt_set_wait_off(msg.data[1]-140, 20);
+			}
+
+			/* prot=13 = Hauptschalterstate length=1 data[0]=state */
+			/* 0 => OFF    */
+			/* 1 => ON     */
+			if (shackbus_id.prot == 13 && shackbus_id.dst == 255 && msg.length == 1)
+			{
+				shackbus_id.prio = 3;
+				shackbus_id.vlan = 4;
+				shackbus_id.dst  = shackbus_id.src;
+				shackbus_id.src  = 8;
+				shackbus_id.prot = 13;
+
+				msg.id = shackbus_sb2id(&shackbus_id);
+				msg.length = 3;
+				msg.data[0];
+				msg.data[1] = 2;
+				msg.data[2] = 3;
+
+				/* Send the message */
+//				can_send_message(&msg);
+
+				if (msg.data[0] > 1)
+					msg.data[0] = 0;
+
+				power_mgt_set_input_1 (1, msg.data[0]);
+				power_mgt_set_wait_on (1, 4); //DLE Kueche
+				power_mgt_set_wait_off(1, 5);
+				power_mgt_set_input_1 (2, msg.data[0]);
+				power_mgt_set_wait_on (2, 2); //OR
+				power_mgt_set_wait_off(2, 4);
+				power_mgt_set_input_1 (3, msg.data[0]);
+				power_mgt_set_wait_on (3, 3); //Kueche
+				power_mgt_set_wait_off(3, 90 * 60); //Sekunden
+			}
+
+
+
 		}
 	}
 }
@@ -171,9 +241,10 @@ void shackbus_main(void)
 uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
 {
 	//Send the new message
-	send_msg_blink_ret.data[0]=val1;
-	send_msg_blink_ret.data[1]=val2;
-	send_msg_blink_ret.data[2]++;
+	send_msg_blink_ret.data[0]=1;
+	send_msg_blink_ret.data[1]=val1;
+	send_msg_blink_ret.data[2]=val2;
+
 	can_send_message(&send_msg_blink_ret);
 
 	return true;
