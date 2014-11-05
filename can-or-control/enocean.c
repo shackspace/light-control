@@ -98,8 +98,7 @@ void enocean_state_set(uint8_t channel, uint8_t state) {
 	}
 
     //Event über Shackbus senden
-    _delay_ms(100);
-    shackbus_send_msg(channel, enocean_channel_state[channel] & ENOCEAN_CHANNEL_STATUS);
+    shackbus_send_msg(channel+ENOCEAN_CHANNEL_OFFSET, enocean_channel_state[channel] & ENOCEAN_CHANNEL_STATUS);
   }
 
 }
