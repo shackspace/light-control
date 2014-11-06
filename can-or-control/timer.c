@@ -91,8 +91,8 @@ void timer_init (void)
 			TIMSK |= (1 << OCIE1A);
 		#endif
 	#endif
-return;
-};
+	return;
+}
 
 
 
@@ -115,7 +115,6 @@ return;
 	{
 		prescaler_10ms = 1;
 
-
 		static uint8_t ct0, ct1;
 		uint8_t i;
 		
@@ -130,12 +129,12 @@ return;
 		input_byte |= ((PIND>>2)&0x01); 
 		 
 		i = key_state ^ ~input_byte;                            // key changed ?
+
 		ct0 = ~( ct0 & i );                             // reset or count ct0
 		ct1 = ct0 ^ (ct1 & i);                          // reset or count ct1
 		i &= ct0 & ct1;                                 // count until roll over ?
 		key_state ^= i;                                 // then toggle debounced state
 		key_press |= key_state & i;                     // 0->1: key press detect
-
 
 	}
 
@@ -144,7 +143,7 @@ return;
 	{
 		prescaler_s = 199;
 		merker = 1;
-		
+
 		#if USE_ENOCEAN
 			enocean_tick();
 		#endif //USE_ENOCEAN
@@ -152,14 +151,15 @@ return;
 		#if USE_HMI
 			hmi_tick();
 		#endif //USE_HMI
-		
+
 		#if USE_POWER_MGT
 			power_mgt_tick();
 		#endif //USE_POWER_MGT
-		
+
 		#if USE_SHACKBUS
 			shackbus_tick();
 		#endif //USE_SHACKBUS
-		
+
 	}
 }
+
