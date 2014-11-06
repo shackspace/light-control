@@ -44,12 +44,10 @@
 #endif //USE_SHACKBUS
 
 
-volatile unsigned long time;
-volatile unsigned long time_watchdog = 0;
-
 volatile uint8_t key_state = 0;                                // debounced and inverted key state:
 volatile uint8_t key_press = 0;                                // key press detect
 
+volatile uint8_t merker = 0;
 
 
 

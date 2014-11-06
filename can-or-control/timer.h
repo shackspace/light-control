@@ -28,14 +28,9 @@
 		#define TIMSK TIMSK1
 	#endif 
 
-
-	volatile unsigned long time;
-    volatile unsigned int  stack_watchdog;
-    volatile unsigned char gp_timer;
 	void timer_init(void);
- 
 
-	volatile uint8_t merker;
+	extern volatile uint8_t merker;
  
 #endif //_TIMER_H
 
