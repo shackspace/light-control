@@ -211,7 +211,6 @@ void shackbus_main(void)
 
 				msg.id = shackbus_sb2id(&shackbus_id);
 				msg.length = 3;
-				msg.data[0];
 				msg.data[1] = 2;
 				msg.data[2] = 3;
 
