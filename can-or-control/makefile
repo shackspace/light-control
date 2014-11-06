@@ -121,6 +121,8 @@ CFLAGS = -g -O$(OPT) \
 -Wa,-adhlns=$(<:.c=.lst) \
 $(patsubst %,-I%,$(EXTRAINCDIRS))
 
+CFLAGS += -Wextra
+CFLAGS += -fno-common
 
 # Set a "language standard" compiler flag.
 #   Unremark just one line below to set the language standard to use.
