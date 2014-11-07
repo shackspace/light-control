@@ -26,10 +26,10 @@
 
 
 // FIFO-Objekte und Puffer für die Ein- und Ausgabe 
-uint8_t inbuf[BUFSIZE_IN];
+static uint8_t uart_inbuf[BUFSIZE_IN];
 fifo_t uart_infifo;
 
-uint8_t outbuf[BUFSIZE_OUT];
+static uint8_t uart_outbuf[BUFSIZE_OUT];
 fifo_t uart_outfifo;
 
 
@@ -64,8 +64,8 @@ void uart_init()
     SREG = sreg;
 
     // FIFOs für Ein- und Ausgabe initialisieren 
-    fifo_init (&uart_infifo,   inbuf, BUFSIZE_IN);
-    fifo_init (&uart_outfifo, outbuf, BUFSIZE_OUT);
+    fifo_init (&uart_infifo,   uart_inbuf, BUFSIZE_IN);
+    fifo_init (&uart_outfifo, uart_outbuf, BUFSIZE_OUT);
 }
 
 
