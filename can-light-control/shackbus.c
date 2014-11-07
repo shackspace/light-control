@@ -18,9 +18,14 @@
 #include "can.h"
 #include "enocean.h"
 #include "hmi.h"
+#include "fifo.h"
+#include "framestorage.h"
 
 
 uint8_t shackbus_msg_send_flag = 0;
+
+fifo_t can_outfifo;
+static uint8_t can_outbuf[10];
 
 const uint8_t PROGMEM can_filter[] = 
 {
@@ -60,6 +65,8 @@ void shackbus_init(void)
     uart_write("can_static_filter(can_filter);");
 #endif
 
+	fifo_init (&can_outfifo,   can_outbuf, 10);
+	framestorage_init();
 
 
 
@@ -76,7 +83,7 @@ void shackbus_init(void)
 
 
 	// Create a test messsage
-	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+9L);  //Absender = 2   Empfänger = 1
+	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+9L);
 	send_msg_blink_ret.flags.rtr = 0;
 
 	send_msg_blink_ret.flags.extended = 1;
@@ -99,7 +106,7 @@ void shackbus_init(void)
 
 	// Create a test messsage
 
-	send_msg_blink.id = 0x00020109;  //Absender = 2   Empfänger = 1
+	send_msg_blink.id = 0x00020109;
 	send_msg_blink.flags.rtr = 0;
 
 	send_msg_blink.flags.extended = 1;
@@ -112,6 +119,17 @@ void shackbus_init(void)
 
 void shackbus_main(void)
 {
+	#ifndef SPI_READ_STATUS
+		#define SPI_READ_STATUS	0xA0
+	#endif
+	extern uint8_t mcp2515_read_status(uint8_t type);
+	uint8_t mcp2515_status = mcp2515_read_status(SPI_READ_STATUS);
+	if ( fifo_get_count(&can_outfifo) > 0 && (mcp2515_status & _BV(2)) == 0 )
+	{
+		uint8_t cur_nr = fifo_get (&can_outfifo);
+		can_send_message(&framestorage_data[cur_nr]);
+		framestorage_get(cur_nr);
+	}
 
 	if (shackbus_msg_send_flag)
 	{
@@ -137,7 +155,7 @@ void shackbus_main(void)
 			msg.data[0] = 0;
 
 		//Send the new message
-		can_send_message(&msg);
+		can_send_message_fifo(&msg);
 	}
 
 
@@ -156,12 +174,12 @@ void shackbus_main(void)
 			shackbus_id_t shackbus_id;
 			shackbus_id2sb(&shackbus_id,&msg);
 
-			//send_msg_blink.id = (((((((3<<3)+4L) <<4)+5L) <<8)+6L) <<8)+9;  //Absender = 2   Empfänger = 1
+			//send_msg_blink.id = (((((((3<<3)+4L) <<4)+5L) <<8)+6L) <<8)+9;
 
 			if (shackbus_id.prot == 9 && shackbus_id.dst == 6 && msg.data[0]<12)
 			{
-                		if (msg.data[1]==1) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_SS);
-                		if (msg.data[1]==0) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_CS);
+				if (msg.data[1]==1) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_SS);
+				if (msg.data[1]==0) enocean_state_set(msg.data[0],ENOCEAN_CHANNEL_SE_SA_CS);
 
 				//Send the new message
 				//shackbus_send_msg(msg.data[0], msg.data[1]);
@@ -182,7 +200,7 @@ void shackbus_main(void)
 				msg.data[1] = msg.data[1];
 
 				//Send the new message
-				can_send_message(&msg);
+				can_send_message_fifo(&msg);
 			}
 
 			/* prot=11 = PowerManagement data[0]=1 =on/off data[1]=channel data[2]=state */
@@ -206,7 +224,7 @@ void shackbus_main(void)
 				msg.data[2] = msg.data[2];
 
 				/* Send the message */
-				can_send_message(&msg);
+				can_send_message_fifo(&msg);
 				enocean_packet_send(msg.data[1], msg.data[2]);
 			}
 		}
@@ -219,8 +237,20 @@ uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
 	send_msg_blink_ret.data[0]=val1;
 	send_msg_blink_ret.data[1]=val2;
 	send_msg_blink_ret.data[2]++;
-	can_send_message(&send_msg_blink_ret);
+	return can_send_message_fifo(&send_msg_blink_ret);
+}
 
+uint8_t can_send_message_fifo(const can_t *msg)
+{
+	uint8_t nextfreeid = framestorage_item_next();
+	if(fifo_get_count(&can_outfifo) <= 8 && nextfreeid != 255)
+	{
+		memcpy(&framestorage_data[nextfreeid], msg, sizeof(FS_DATA_TYPE));
+		framestorage_put(nextfreeid);
+		fifo_put (&can_outfifo,nextfreeid);
+	} else {
+		return false;
+	}
 	return true;
 }
 

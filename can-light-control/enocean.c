@@ -98,7 +98,6 @@ void enocean_state_set(uint8_t channel, uint8_t state) {
 	}
 
     //Event über Shackbus senden
-    _delay_ms(100);
     shackbus_send_msg(channel, enocean_channel_state[channel] & ENOCEAN_CHANNEL_STATUS);
   }
   if (channel == 99)
@@ -127,7 +126,6 @@ void enocean_tick(void) {
 // create a enocean telegram and send over uart
 uint8_t enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
-	_delay_ms(20);
 	uint8_t packet_tmp[14] = {0xa5, 0x5a, 0x0b, 0x05, 
 		((cmd+2) << 5 | 16),
 		0, 0, 0, 0, 0, 0,
