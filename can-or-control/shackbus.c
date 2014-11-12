@@ -38,10 +38,7 @@ const uint8_t PROGMEM can_filter[] =
 // You can receive 11 bit identifiers with either group 0 or 1.
 
 
-    can_t send_msg;
 	can_t send_msg_blink_ret;
-    can_t send_test_msg;
-	can_t send_msg_blink;
 
 
 void shackbus_init(void)
@@ -63,18 +60,6 @@ void shackbus_init(void)
 
 	// Create a test messsage
 
-	send_msg.id = 0x00010202;
-	send_msg.flags.rtr = 0;
-	send_msg.flags.extended = 1;
-
-	send_msg.length = 2;
-	send_msg.data[0] = 0x00;
-	send_msg.data[1] = 0x00;
-
-
-
-	// Create a test messsage
-
 	send_msg_blink_ret.id = ((3L<<26)+(4L<<22)+(6L<<14)+(5L<<6)+11L);  //Absender = 2   Empfänger = 1
 	send_msg_blink_ret.flags.rtr = 0;
 
@@ -86,27 +71,6 @@ void shackbus_init(void)
 	send_msg_blink_ret.data[2] = 0;
 
 
-	// Create a test messsage
-	send_test_msg.id = 0x00010203;
-	send_test_msg.flags.rtr = 0;
-	send_test_msg.flags.extended = 1;
-
-	send_test_msg.length = 8;
-	send_test_msg.data[0] = 0x00;
-	send_test_msg.data[1] = 0x00;
-
-
-	// Create a test messsage
-
-	send_msg_blink.id = 0x00020109;  //Absender = 2   Empfänger = 1
-	send_msg_blink.flags.rtr = 0;
-
-	send_msg_blink.flags.extended = 1;
-
-	send_msg_blink.length  = 3;
-	send_msg_blink.data[0] = 3;
-	send_msg_blink.data[1] = 1;
-	send_msg_blink.data[2] = 0;
 }
 
 void shackbus_main(void)
