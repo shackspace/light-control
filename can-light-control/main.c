@@ -149,10 +149,6 @@ int main(void)
 			sei();
 		#endif
 
-		//if (merker)
-		//  if(can_check_free_buffer())
-		//	can_send_message(&send_test_msg);
-
 		if (merker)
 		{
 			merker=0;
