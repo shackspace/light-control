@@ -18,7 +18,11 @@
 #include "can.h"
 #include "enocean.h"
 #include "power_mgt.h"
+#include "fifo.h"
+#include "framestorage.h"
 
+fifo_t can_outfifo;
+static uint8_t can_outbuf[10];
 
 const uint8_t PROGMEM can_filter[] = 
 {
@@ -38,10 +42,7 @@ const uint8_t PROGMEM can_filter[] =
 // You can receive 11 bit identifiers with either group 0 or 1.
 
 
-    can_t send_msg;
 	can_t send_msg_blink_ret;
-    can_t send_test_msg;
-	can_t send_msg_blink;
 
 
 void shackbus_init(void)
@@ -58,18 +59,8 @@ void shackbus_init(void)
     uart_write("can_static_filter(can_filter);");
 #endif
 
-
-
-
-	// Create a test messsage
-
-	send_msg.id = 0x00010202;
-	send_msg.flags.rtr = 0;
-	send_msg.flags.extended = 1;
-
-	send_msg.length = 2;
-	send_msg.data[0] = 0x00;
-	send_msg.data[1] = 0x00;
+	fifo_init (&can_outfifo,   can_outbuf, 10);
+	framestorage_init();
 
 
 
@@ -86,31 +77,20 @@ void shackbus_init(void)
 	send_msg_blink_ret.data[2] = 0;
 
 
-	// Create a test messsage
-	send_test_msg.id = 0x00010203;
-	send_test_msg.flags.rtr = 0;
-	send_test_msg.flags.extended = 1;
-
-	send_test_msg.length = 8;
-	send_test_msg.data[0] = 0x00;
-	send_test_msg.data[1] = 0x00;
-
-
-	// Create a test messsage
-
-	send_msg_blink.id = 0x00020109;  //Absender = 2   Empfänger = 1
-	send_msg_blink.flags.rtr = 0;
-
-	send_msg_blink.flags.extended = 1;
-
-	send_msg_blink.length  = 3;
-	send_msg_blink.data[0] = 3;
-	send_msg_blink.data[1] = 1;
-	send_msg_blink.data[2] = 0;
 }
 
 void shackbus_main(void)
 {
+	if ( fifo_get_count(&can_outfifo) > 0  )
+	{
+		uint8_t cur_nr = fifo_read (&can_outfifo);
+		if ( can_send_message(&framestorage_data[cur_nr]) )
+		{
+			fifo_get (&can_outfifo);
+			framestorage_get(cur_nr);
+		}
+	}
+
 	// Check if a new messag was received
 	if (can_check_message())
 	{
@@ -137,7 +117,7 @@ void shackbus_main(void)
 				msg.data[1] = msg.data[1];
 
 				//Send the new message
-				can_send_message(&msg);
+				can_send_message_fifo(&msg);
 			}
 
 			/* prot=11 = PowerManagement data[0]=1 =on/off data[1]=channel data[2]=state */
@@ -161,7 +141,7 @@ void shackbus_main(void)
 				msg.data[2] = msg.data[2];
 
 				/* Send the message */
-				can_send_message(&msg);
+				can_send_message_fifo(&msg);
 
 				if (msg.data[2]==1) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_SS);
 				if (msg.data[2]==0) enocean_state_set(msg.data[1],ENOCEAN_CHANNEL_SE_SA_CS);
@@ -190,7 +170,7 @@ void shackbus_main(void)
 				msg.data[2] = msg.data[2];
 
 				/* Send the message */
-				can_send_message(&msg);
+				can_send_message_fifo(&msg);
 
 				void power_mgt_set_input_1(uint8_t _channel, uint8_t _state);
 				void power_mgt_set_wait_off(uint8_t _channel, uint16_t _value);
@@ -244,8 +224,20 @@ uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
 	send_msg_blink_ret.data[1]=val1;
 	send_msg_blink_ret.data[2]=val2;
 
-	can_send_message(&send_msg_blink_ret);
+	return can_send_message_fifo(&send_msg_blink_ret);
+}
 
+uint8_t can_send_message_fifo(const can_t *msg)
+{
+	uint8_t nextfreeid = framestorage_item_next();
+	if(fifo_get_count(&can_outfifo) <= 8 && nextfreeid != 255)
+	{
+		memcpy(&framestorage_data[nextfreeid], msg, sizeof(FS_DATA_TYPE));
+		framestorage_put(nextfreeid);
+		fifo_put (&can_outfifo,nextfreeid);
+	} else {
+		return false;
+	}
 	return true;
 }
 
