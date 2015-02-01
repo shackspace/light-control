@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <avr/io.h>
+#include <avr/wdt.h>
 
 #include "shackbus.h"
 #include "can.h"
@@ -118,6 +119,14 @@ void shackbus_main(void)
 
 				//Send the new message
 				can_send_message_fifo(&msg);
+			}
+
+			//prot=10 = Basis IO data[0]=04 = Jump2Bootloader
+			if (shackbus_id.prot == 10 && shackbus_id.dst == 8 && msg.data[0]==04)
+			{
+				cli();
+				wdt_enable(WDTO_15MS );
+				while (1);
 			}
 
 			/* prot=11 = PowerManagement data[0]=1 =on/off data[1]=channel data[2]=state */

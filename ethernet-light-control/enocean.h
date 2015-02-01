@@ -28,6 +28,7 @@
 	void enocean_tick(void);
 	void enocean_packet_send(uint8_t addr, uint8_t status);
 	void power_packet_send(uint8_t addr, uint8_t status);
+	void send_udp_msg(uint8_t addr, uint8_t cmd);
 
  
 

@@ -37,6 +37,7 @@
 #include "enocean.h"
 #include "can.h"
 #include "can2udp.h"
+#include "shackbus.h"
 
 //----------------------------------------------------------------------------
 //Hier startet das Hauptprogramm
@@ -101,10 +102,9 @@ int main(void)
     #endif //USE_DNS
     
 	
-	// initialisieren des MCP2515
-	can_init(BITRATE_125_KBPS);
-	usart_write("can_init(BITRATE_125_KBPS)\r\n");
-//	can_set_mode(LOOPBACK_MODE);
+	#if USE_SHACKBUS
+		shackbus_init();
+	#endif
 
 
 	while(1)
@@ -135,6 +135,11 @@ int main(void)
         }
         #endif //USE_DHCP
   
+		#if USE_SHACKBUS
+			cli();
+			shackbus_main();
+			sei();
+		#endif
 cli();
 		#if USE_ENOCEAN
 			enocean_main();

@@ -59,8 +59,6 @@ uint32_t remote_ip = IP(0,0,0,0);
 uint32_t remote_ip_openhab = IP(0,0,0,0);
 
 //internal function prototyps
-void send_udp_msg(uint8_t addr, uint8_t cmd);
-void shackbus_main(void);
 void change_light_state(uint8_t addr, uint8_t state);
 
 
@@ -169,37 +167,8 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 }
 
 
-void shackbus_main(void)
+void enocean_main(void)
 {
-	// Check if a new messag was received
-	if (can_check_message())
-	{
-		can_t msg;
-
-		// Try to read the message
-		if (can_get_message(&msg))
-		{
-			shackbus_id_t shackbus_id;
-			shackbus_id2sb(&shackbus_id,&msg);
-
-			can2udp(&msg); //msg an udp weiterleiten
-
-			/* Wenn der Event über Can kommt dann per udp weiterleiten / brodcasten */
-			if (shackbus_id.prot == 9 && msg.data[0]<12 )
-			{
-				send_udp_msg(msg.data[0], msg.data[1]);
-			}
-			if (shackbus_id.prot == 9 && msg.data[0]==120 )
-			{
-				send_udp_msg(msg.data[0], msg.data[1]);
-			}
-			if (shackbus_id.prot == 11 && msg.data[0]==1 )
-			{
-				send_udp_msg(msg.data[1], msg.data[2]);
-			}
-		}
-	}
-
 	if (blinker)
 	{
 		blinker = 0;		
@@ -223,12 +192,6 @@ void shackbus_main(void)
 //		can2udp(&msg);
 
 	}
-}
-
-
-void enocean_main(void)
-{
-    shackbus_main();
 
 	for (uint8_t i = 0; i < 12; i++)
 	{
