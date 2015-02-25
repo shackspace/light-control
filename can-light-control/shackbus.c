@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <avr/io.h>
+#include <avr/wdt.h>
 
 #include "shackbus.h"
 #include "can.h"
@@ -81,16 +82,14 @@ void shackbus_init(void)
 
 void shackbus_main(void)
 {
-	#ifndef SPI_READ_STATUS
-		#define SPI_READ_STATUS	0xA0
-	#endif
-	extern uint8_t mcp2515_read_status(uint8_t type);
-	uint8_t mcp2515_status = mcp2515_read_status(SPI_READ_STATUS);
-	if ( fifo_get_count(&can_outfifo) > 0 && (mcp2515_status & _BV(2)) == 0 )
+	if ( fifo_get_count(&can_outfifo) > 0  )
 	{
-		uint8_t cur_nr = fifo_get (&can_outfifo);
-		can_send_message(&framestorage_data[cur_nr]);
-		framestorage_get(cur_nr);
+		uint8_t cur_nr = fifo_read (&can_outfifo);
+		if ( can_send_message(&framestorage_data[cur_nr]) )
+		{
+			fifo_get (&can_outfifo);
+			framestorage_get(cur_nr);
+		}
 	}
 
 	if (shackbus_msg_send_flag)
@@ -161,6 +160,14 @@ void shackbus_main(void)
 
 				//Send the new message
 				can_send_message_fifo(&msg);
+			}
+
+			//prot=10 = Basis IO data[0]=04 = Jump2Bootloader
+			if (shackbus_id.prot == 10 && shackbus_id.dst == 6 && msg.data[0]==04)
+			{
+				cli();
+				wdt_enable(WDTO_15MS);
+				while (1);
 			}
 
 			/* prot=11 = PowerManagement data[0]=1 =on/off data[1]=channel data[2]=state */
