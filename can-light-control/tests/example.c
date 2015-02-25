@@ -250,6 +250,42 @@ TEST shackbus_ping_case(void) {
 }
 
 
+TEST shackbus_jump2bootloader_case(void) {
+	extern fifo_t mock_can_outfifo;
+	extern fifo_t mock_can_infifo;
+	shackbus_init();
+	can_mock_init();
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
+	shackbus_main();
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
+
+	can_t send_msg_cmp;
+	send_msg_cmp.id = ((3L<<26)+(4L<<22)+(8L<<14)+(6L<<6)+10L);  //Absender = 2   Empfänger = 1
+	send_msg_cmp.flags.rtr = 0;
+	send_msg_cmp.flags.extended = 1;
+	send_msg_cmp.length  = 1;
+	send_msg_cmp.data[0]=4;
+
+	uint8_t can_input_message(can_t *msg);
+	can_input_message(&send_msg_cmp);
+	ASSERT(can_check_message());
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 15);
+
+	shackbus_main();
+	shackbus_main();
+
+	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
+	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
+
+	ASSERT(get_reboot() == 1);
+
+	PASS();
+}
+
+
 
 
 SUITE(suite) {
@@ -260,6 +296,7 @@ SUITE(suite) {
 	RUN_TEST(shackbus_mock_can_outfifo_case);
 	RUN_TEST(shackbus_case);
 	RUN_TEST(shackbus_ping_case);
+	RUN_TEST(shackbus_jump2bootloader_case);
 
 }
 
