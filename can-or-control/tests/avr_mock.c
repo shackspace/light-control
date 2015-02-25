@@ -24,6 +24,16 @@ void eeprom_read_block(uint8_t tmp, uint8_t tmp2, uint8_t tmp3)
 	return 0;
 }
 
+uint8_t reboot_flag = 0;
+void set_reboot(void)
+{
+	reboot_flag = 1;
+	return;
+}
+uint8_t get_reboot(void)
+{
+	return reboot_flag;
+}
 
 
 
