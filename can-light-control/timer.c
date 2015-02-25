@@ -46,7 +46,6 @@ volatile uint8_t key_press = 0;                                // key press dete
 volatile uint8_t merker = 0;
 
 
-
 //----------------------------------------------------------------------------
 //Diese Routine startet und inizialisiert den Timer
 void timer_init (void)
@@ -105,6 +104,8 @@ void timer_init (void)
 	ISR (TIMER1_COMPA_vect)
 #endif
 {
+
+	if(uart_frameing > 0) uart_frameing--;
 
 	static uint16_t    prescaler_10ms = 2;
 	if(!prescaler_10ms--)

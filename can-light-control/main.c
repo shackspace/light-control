@@ -121,6 +121,9 @@ int main(void)
 
 		#if USE_ENOCEAN
 			enocean_main();
+			cli();
+			uart_main();
+			sei();
 		#endif
 		
 		#if USE_HMI
