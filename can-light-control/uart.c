@@ -96,9 +96,9 @@ ISR(USART_RXC_vect)
 }
 ISR(USART_TXC_vect)
 {
-    if (uart_outfifo.count % 14 == 0) {
-		if (uart_outfifo.count)
-			uart_frameing = 2;
+	// Nach jedem Telegramm wird eine Pause gemacht.
+	if (uart_outfifo.count % 14 == 0) {
+		uart_frameing = 2;
 	}
   #if DIRECTION_CONTROL
     TX_NE
@@ -114,23 +114,22 @@ ISR(USART_UDRE_vect)
         UDR = fifo_get (&uart_outfifo);
 		if (uart_outfifo.count % 14 == 0)
 		{
-			UCSRB &= ~(1 << UDRIE);
+			uart_disable_tx();
 		}
       #if DIRECTION_CONTROL
         TX_EN
       #endif
     } else {
-        UCSRB &= ~(1 << UDRIE);
+        uart_disable_tx();
 	}
 }
 
 uint8_t uart_putc (const uint8_t c)
 {
-    uint8_t ret = fifo_put (&uart_outfifo, c);
-	
-    UCSRB |= (1 << UDRIE);
-	 
-    return ret;
+	uint8_t ret = fifo_put (&uart_outfifo, c);
+	if (uart_frameing <= 0 && uart_outfifo.count == 1)
+		UCSRB |= (1 << UDRIE); //enable UART tx
+	return ret;
 }
 
 //----------------------------------------------------------------------------
@@ -176,6 +175,14 @@ uint8_t uart_size_buffer_rx(void)
 void uart_enable_tx(void)
 {
     UCSRB |= (1 << UDRIE);
+	return;
+}
+
+//----------------------------------------------------------------------------
+//Disable tx
+void uart_disable_tx(void)
+{
+    UCSRB &= ~(1 << UDRIE);
 	return;
 }
 
