@@ -85,8 +85,9 @@ int main(void)
 		wdt_reset();
 
 		#if USE_ENOCEAN
-			cli();
 			enocean_main();
+			cli();
+			uart_main();
 			sei();
 		#endif
 		
