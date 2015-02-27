@@ -14,6 +14,7 @@
 #include "config.h"
 #include "uart.h"
 #include "fifo.h"
+#include "timer.h"
 
 /* set the UART baud rate and Fifosize*/
 #ifndef BAUDRATE
@@ -31,6 +32,10 @@ fifo_t uart_infifo;
 
 static uint8_t uart_outbuf[BUFSIZE_OUT];
 fifo_t uart_outfifo;
+
+
+//global timer for TX breaks
+volatile int8_t uart_frameing = 0;
 
 
 void uart_init()
@@ -68,6 +73,21 @@ void uart_init()
     fifo_init (&uart_outfifo, uart_outbuf, BUFSIZE_OUT);
 }
 
+//----------------------------------------------------------------------------
+//
+void uart_main(void)
+{
+	if(uart_frameing == 0)
+	{
+		uart_frameing = -1;
+		if(uart_size_buffer_tx())
+		{
+			uart_enable_tx();
+		}
+	}
+
+	return;
+}
 
 // Empfangene Zeichen werden in die Eingabgs-FIFO gespeichert und warten dort 
 ISR(USART_RXC_vect)
@@ -76,6 +96,10 @@ ISR(USART_RXC_vect)
 }
 ISR(USART_TXC_vect)
 {
+	// Nach jedem Telegramm wird eine Pause gemacht.
+	if (uart_outfifo.count % 14 == 0) {
+		uart_frameing = 2;
+	}
   #if DIRECTION_CONTROL
     TX_NE
   #endif
@@ -88,21 +112,24 @@ ISR(USART_UDRE_vect)
 {
     if (uart_outfifo.count > 0) {
         UDR = fifo_get (&uart_outfifo);
+		if (uart_outfifo.count % 14 == 0)
+		{
+			uart_disable_tx();
+		}
       #if DIRECTION_CONTROL
         TX_EN
       #endif
     } else {
-        UCSRB &= ~(1 << UDRIE);
+        uart_disable_tx();
 	}
 }
 
 uint8_t uart_putc (const uint8_t c)
 {
-    uint8_t ret = fifo_put (&uart_outfifo, c);
-	
-    UCSRB |= (1 << UDRIE);
-	 
-    return ret;
+	uint8_t ret = fifo_put (&uart_outfifo, c);
+	if (uart_frameing <= 0 && uart_outfifo.count == 1)
+		UCSRB |= (1 << UDRIE); //enable UART tx
+	return ret;
 }
 
 //----------------------------------------------------------------------------
@@ -127,5 +154,35 @@ uint8_t uart_size_free_buffer_tx(void)
 uint8_t uart_size_free_buffer_rx(void)
 {
 	return (uart_infifo.size - uart_infifo.count);
+}
+
+//----------------------------------------------------------------------------
+//Freier Speicher im Sendepuffer
+uint8_t uart_size_buffer_tx(void)
+{
+	return (uart_outfifo.count);
+}
+
+//----------------------------------------------------------------------------
+//Freier Speicher im Sendepuffer
+uint8_t uart_size_buffer_rx(void)
+{
+	return (uart_infifo.count);
+}
+
+//----------------------------------------------------------------------------
+//Enable tx
+void uart_enable_tx(void)
+{
+    UCSRB |= (1 << UDRIE);
+	return;
+}
+
+//----------------------------------------------------------------------------
+//Disable tx
+void uart_disable_tx(void)
+{
+    UCSRB &= ~(1 << UDRIE);
+	return;
 }
 
