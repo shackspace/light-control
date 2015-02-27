@@ -110,6 +110,8 @@ void timer_init (void)
 #endif
 {
 
+	if(uart_frameing > 0) uart_frameing--;
+
 	static uint16_t    prescaler_10ms = 2;
 	if(!prescaler_10ms--)
 	{

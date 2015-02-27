@@ -50,12 +50,6 @@ uint8_t mcp2515_send_message(const can_t *msg)
 	if (_bit_is_clear(status, 2)) {
 		address = 0x00;
 	}
-	else if (_bit_is_clear(status, 4)) {
-		address = 0x02;
-	} 
-	else if (_bit_is_clear(status, 6)) {
-		address = 0x04;
-	}
 	else {
 		// Alle Puffer sind belegt,
 		// Nachricht kann nicht verschickt werden
