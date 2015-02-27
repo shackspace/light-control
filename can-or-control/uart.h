@@ -26,14 +26,22 @@
 extern fifo_t uart_infifo;
 extern fifo_t uart_outfifo;
 
+extern volatile int8_t uart_frameing;
 
 extern void uart_init(void);
+extern void uart_main(void);
 
 extern uint8_t uart_putc (const uint8_t);
 extern void uart_write(const char*);
 
 extern uint8_t uart_size_free_buffer_tx(void);
 extern uint8_t uart_size_free_buffer_rx(void);
+
+extern uint8_t uart_size_buffer_tx(void);
+extern uint8_t uart_size_buffer_rx(void);
+
+extern void uart_enable_tx(void);
+extern void uart_disable_tx(void);
 
 #define DIRECTION_CONTROL	0
 
