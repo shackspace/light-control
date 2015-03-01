@@ -11,7 +11,7 @@
 #include "../fifo.h"
 
 fifo_t eth_outfifo;
-uint8_t outbuf[100];
+static uint8_t outbuf[100];
 
 
 void kill_udp_app(unsigned int port){};
