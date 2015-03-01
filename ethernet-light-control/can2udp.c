@@ -152,7 +152,6 @@ void can_t_2_can_frame_t(can_t* a, can_frame_t* b) {
 
 	if(a->flags.extended==1)
 		b->can_id |= 0x80000000;
-	b->state = 1;
 }
 
 
@@ -166,8 +165,9 @@ void can2udp(can_t *msg)
 	uint8_t nextfreeid = framestorage_item_next();
 	if (fifo_get_count(&can_outfifo) <= 8 && nextfreeid != 255 )
 	{
-		can_t_2_can_frame_t(msg, &framestorage_data[nextfreeid]);
+		memcpy(&framestorage_data[nextfreeid], msg, sizeof(FS_DATA_TYPE));
 		fifo_put (&can_outfifo,nextfreeid);
+		framestorage_put(nextfreeid);
 	} else {
 		if (fifo_get_count(&can_outfifo) > 8) lost_can_frames++;
 		if (nextfreeid == 255)                 lost_can_frames2++;
@@ -189,9 +189,8 @@ uint8_t can2udp_get_next_message(uint8_t* msg)
 	if (fifo_get_count(&can_outfifo) > 0)
 	{
 		uint8_t cur_nr = fifo_get (&can_outfifo);
-		framestorage_data[cur_nr].state = 0;
-		memcpy(msg, &framestorage_data[cur_nr], sizeof(can_frame_t));
-		framestorage_item_clear(cur_nr);
+		can_t_2_can_frame_t(&framestorage_data[cur_nr], msg);
+		framestorage_get(cur_nr);
 
 		return 1;
 	}
@@ -274,8 +273,8 @@ void can2udp_main(void) {
 
 		memset(&udp_snd_can_frame,0,sizeof(can_t));    
 		uint8_t cur_nr = fifo_get (&can_infifo);
-		can_frame_t_2_can_t(&framestorage_data[cur_nr], &udp_snd_can_frame);
-		framestorage_item_clear(cur_nr);
+		memcpy(&udp_snd_can_frame, &framestorage_data[cur_nr], sizeof(FS_DATA_TYPE));
+		framestorage_get(cur_nr);
 
 		if ( can_send_message(&udp_snd_can_frame) == 0 )
 			lost_can_frames++;
@@ -447,9 +446,9 @@ void can2udp_get(unsigned char index) {
 			uint8_t nextfreeid = framestorage_item_next();
 			if (fifo_get_count(&can_infifo) <= 8 && nextfreeid != 255 )
 			{
-				udp_rec_can_frame.state = 1;
-				memcpy(&framestorage_data[nextfreeid], &udp_rec_can_frame, sizeof(can_frame_t));
+				can_frame_t_2_can_t(&udp_rec_can_frame, &framestorage_data[nextfreeid]);
 				fifo_put (&can_infifo,nextfreeid);
+				framestorage_put(nextfreeid);
 			} else
 				lost_can_frames3++;
 
