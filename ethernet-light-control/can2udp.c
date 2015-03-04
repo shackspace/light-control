@@ -85,7 +85,7 @@ uint8_t fifo_rec_read  = 0;
 can_frame_t fifo_rec[FIFO_REC_BUFFER_SIZE];
 
 
-static uint8_t max_can_infifo = 0;
+static uint8_t max_can2udp_infifo = 0;
 
 uint8_t time_to_send_ack = 0;
 
@@ -106,10 +106,10 @@ void can2udp_netInit(void) {
 
 
 
-fifo_t can_infifo;
- uint8_t inbuf[10];
-fifo_t can_outfifo;
- uint8_t outbuf[10];
+fifo_t can2udp_infifo;
+static uint8_t inbuf[10];
+fifo_t can2udp_outfifo;
+static uint8_t outbuf[10];
 
 
 // ----------------------------------------------------------------------------
@@ -118,8 +118,8 @@ void can2udp_init(void) {
 
   can2udp_port = 4223;
 
-  fifo_init (&can_infifo,   inbuf, 10);
-  fifo_init (&can_outfifo,   outbuf, 10);
+  fifo_init (&can2udp_infifo,   inbuf, 10);
+  fifo_init (&can2udp_outfifo,   outbuf, 10);
 
  return;
 }
@@ -163,13 +163,13 @@ void can2udp(can_t *msg)
 {
 
 	uint8_t nextfreeid = framestorage_item_next();
-	if (fifo_get_count(&can_outfifo) <= 8 && nextfreeid != 255 )
+	if (fifo_get_count(&can2udp_outfifo) <= 8 && nextfreeid != 255 )
 	{
 		memcpy(&framestorage_data[nextfreeid], msg, sizeof(FS_DATA_TYPE));
-		fifo_put (&can_outfifo,nextfreeid);
+		fifo_put (&can2udp_outfifo,nextfreeid);
 		framestorage_put(nextfreeid);
 	} else {
-		if (fifo_get_count(&can_outfifo) > 8) lost_can_frames++;
+		if (fifo_get_count(&can2udp_outfifo) > 8) lost_can_frames++;
 		if (nextfreeid == 255)                 lost_can_frames2++;
 	}
 }
@@ -186,9 +186,9 @@ uint8_t can2udp_get_next_message(uint8_t* msg)
 //	eth_buffer[UDP_DATA_START+4] = msg->length; //data_length_code
 //	memcpy(&eth_buffer[UDP_DATA_START+8],(uint8_t*)&msg->data[0],msg->length);
 
-	if (fifo_get_count(&can_outfifo) > 0)
+	if (fifo_get_count(&can2udp_outfifo) > 0)
 	{
-		uint8_t cur_nr = fifo_get (&can_outfifo);
+		uint8_t cur_nr = fifo_get (&can2udp_outfifo);
 		can_t_2_can_frame_t(&framestorage_data[cur_nr], msg);
 		framestorage_get(cur_nr);
 
@@ -262,17 +262,17 @@ uint8_t can2udp_timer_flag_10ms = 0;
 void can2udp_main(void) {
 
 
-	if ( max_can_infifo < fifo_get_count(&can_infifo) )
-		max_can_infifo = fifo_get_count(&can_infifo);
+	if ( max_can2udp_infifo < fifo_get_count(&can2udp_infifo) )
+		max_can2udp_infifo = fifo_get_count(&can2udp_infifo);
 
 
 
-	if ( (fifo_get_count(&can_infifo) > 0) && can_check_free_buffer() ) {
+	if ( (fifo_get_count(&can2udp_infifo) > 0) && can_check_free_buffer() ) {
 
 		static can_t       udp_snd_can_frame;
 
 		memset(&udp_snd_can_frame,0,sizeof(can_t));    
-		uint8_t cur_nr = fifo_get (&can_infifo);
+		uint8_t cur_nr = fifo_get (&can2udp_infifo);
 		memcpy(&udp_snd_can_frame, &framestorage_data[cur_nr], sizeof(FS_DATA_TYPE));
 		framestorage_get(cur_nr);
 
@@ -326,7 +326,7 @@ void can2udp_main(void) {
 		msg.data[0]=(tmp_cnt>>8)&0xFF;
 		msg.data[1]=tmp_cnt&0xFF;
 		msg.data[2]=sizeof(can_t);
-		msg.data[3]=max_can_infifo;
+		msg.data[3]=max_can2udp_infifo;
 		msg.data[4]=lost_can_frames;
 		msg.data[5]=lost_can_frames2;
 		msg.data[6]=lost_can_frames3;
@@ -341,7 +341,7 @@ void can2udp_main(void) {
 
 		msg.id = shackbus_sb2id(&sb);
 
-		//fifo_put_var (&can_infifo,(uint8_t *)&msg,sizeof(can_t));
+		//fifo_put_var (&can2udp_infifo,(uint8_t *)&msg,sizeof(can_t));
 		can2udp(&msg);
 
 
@@ -444,10 +444,10 @@ void can2udp_get(unsigned char index) {
 		//	change_light_state(udp_snd_can_frame.data[0],udp_snd_can_frame.data[1]);
 
 			uint8_t nextfreeid = framestorage_item_next();
-			if (fifo_get_count(&can_infifo) <= 8 && nextfreeid != 255 )
+			if (fifo_get_count(&can2udp_infifo) <= 8 && nextfreeid != 255 )
 			{
 				can_frame_t_2_can_t(&udp_rec_can_frame, &framestorage_data[nextfreeid]);
-				fifo_put (&can_infifo,nextfreeid);
+				fifo_put (&can2udp_infifo,nextfreeid);
 				framestorage_put(nextfreeid);
 			} else
 				lost_can_frames3++;
