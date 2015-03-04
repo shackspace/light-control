@@ -18,7 +18,7 @@ void kill_udp_app(unsigned int port){};
 void add_udp_app(unsigned int port, void(*fp1)(unsigned char)){};
 unsigned char eth_buffer[MTU_SIZE+1];
 void create_new_udp_packet( unsigned int  data_length, unsigned int  src_port, unsigned int  dest_port, unsigned long dest_ip){
-	fifo_put_var (&eth_outfifo, &eth_buffer[UDP_DATA_START+0], 4);
+	fifo_put_var (&eth_outfifo, &eth_buffer[UDP_DATA_START+0], data_length);
 };
 char arp_request (unsigned long var){};
 char arp_entry_search (unsigned long var){};
@@ -38,6 +38,12 @@ void init_eth_mock(void);
 void init_eth_mock(void)
 {
 	fifo_init (&eth_outfifo,   outbuf, 100);
+}
+void get_eth_mock(uint8_t);
+void get_eth_mock(uint8_t cnt)
+{
+	for(uint8_t i = 0;i<cnt;i++)
+		fifo_get(&eth_outfifo);
 }
 
 
