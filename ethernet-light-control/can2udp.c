@@ -423,7 +423,8 @@ void can2udp_get(unsigned char index) {
 				err_msg[5] = 2;
 				err_msg[6] = (c2u_counter_rx_src + 1)%256;
 				err_msg[7] = c2u_counter_rx_dst;
-				can2udp((can_t*)&err_msg); 	
+				can2udp((can_t*)&err_msg);
+				return;
 			} else {
 				c2u_con_state_tx = 3;
 				c2u_counter_rx_ack = c2u_counter_rx_dst;
