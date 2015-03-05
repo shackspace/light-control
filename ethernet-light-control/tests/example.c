@@ -31,17 +31,17 @@ TEST fifo_case(void) {
 TEST framestorage_case(void) {
 	framestorage_init();
 	ASSERT(framestorage_item_next() == 0);
-	framestorage_data[0].state = 1;
+	framestorage_put(0);
 
 	int x;
 	for (x = 1; x < FS_DATA_SIZE; x++) {
 		int tmp = framestorage_item_next();
-		framestorage_data[tmp].state = 1;
+		framestorage_put(tmp);
 	}
 
 	ASSERT(framestorage_item_next() == 255);
 
-	framestorage_item_clear(5);
+	framestorage_get(5);
 	ASSERT(framestorage_item_next() == 5);
 
 	PASS();
