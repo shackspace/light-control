@@ -211,8 +211,8 @@ TEST send_can2udp_case(void) {
 
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
-	extern fifo_t can_infifo;
-	extern fifo_t can_outfifo;
+	extern fifo_t can2udp_infifo;
+	extern fifo_t can2udp_outfifo;
 	framestorage_init();
 
 	can_t send_msg_cmp;
@@ -225,13 +225,13 @@ TEST send_can2udp_case(void) {
 	send_msg_cmp.data[2]=132;
 
 	can2udp_init();
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	can2udp(&send_msg_cmp);
 	send_msg_cmp.data[0]=100;
 	can2udp(&send_msg_cmp);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 2);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 2);
 
 	extern uint8_t c2u_con_state;
 	c2u_con_state = 2;
@@ -240,8 +240,8 @@ TEST send_can2udp_case(void) {
 	extern long c2u_remote_ip;
 	c2u_remote_ip = 1;
 	can2udp_main();
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 
 
 	ASSERT(fifo_get_count(&eth_outfifo) == 16);
@@ -256,8 +256,8 @@ TEST send_can2udp_case(void) {
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	get_eth_mock(4);
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 
@@ -279,8 +279,8 @@ TEST send_can2udp_case(void) {
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	get_eth_mock(4);
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 	can2udp_main();
@@ -297,8 +297,8 @@ TEST send_can2udp_case(void) {
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	get_eth_mock(4);
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 
@@ -317,8 +317,8 @@ TEST recv_can2udp_case(void) {
 
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
-	extern fifo_t can_infifo;
-	extern fifo_t can_outfifo;
+	extern fifo_t can2udp_infifo;
+	extern fifo_t can2udp_outfifo;
 	framestorage_init();
 
 	extern uint8_t c2u_con_state;
@@ -345,15 +345,15 @@ TEST recv_can2udp_case(void) {
 	can2udp_init();
 
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 
 	can2udp_main();
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 
@@ -361,6 +361,7 @@ TEST recv_can2udp_case(void) {
 
 	extern fifo_t mock_can_outfifo;
 	extern fifo_t mock_can_infifo;
+	void can_mock_init(void);
 	shackbus_init();
 	can_mock_init();
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
@@ -387,8 +388,8 @@ TEST recv_can2udp_case(void) {
 
 	ASSERT(c2u_con_state_tx == 2);
 
-	ASSERT(fifo_get_count(&can_infifo) == 1);
-	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 	can2udp_main();
@@ -401,8 +402,8 @@ TEST recv_can2udp_case(void) {
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	ASSERT(fifo_get(&eth_outfifo) == 0xA0);
 	get_eth_mock(12);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 
@@ -445,12 +446,12 @@ TEST recv_can2udp_case(void) {
 
 
 
-	ASSERT(fifo_get_count(&can_infifo) == 1);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	send_msg.data[0]=100;
 	can2udp(&send_msg);
-	ASSERT(fifo_get_count(&can_infifo) == 1);
-	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 
 
 	ASSERT(c2u_con_state_tx == 3);
@@ -463,8 +464,8 @@ TEST recv_can2udp_case(void) {
 	can2udp_main();
 	can2udp_main();
 	shackbus_main();
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 
 	ASSERT(can_compare_sended(send_msg_cmp));
 
@@ -474,16 +475,16 @@ TEST recv_can2udp_case(void) {
 
 
 	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	can2udp_main();
 	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	can2udp_main();
 	ASSERT(fifo_get_count(&eth_outfifo) == 16);
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 
 	send_msg.data[0]=200;
 	can2udp(&send_msg);
@@ -502,13 +503,13 @@ TEST recv_can2udp_case(void) {
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	get_eth_mock(4);
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 2);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 2);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 	can2udp_main();
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 
 	ASSERT(fifo_get_count(&eth_outfifo) == 16);
 	ASSERT(fifo_get(&eth_outfifo) == 40);
@@ -522,13 +523,13 @@ TEST recv_can2udp_case(void) {
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	get_eth_mock(4);
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 	can2udp_main();
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 
 	ASSERT(fifo_get_count(&eth_outfifo) == 16);
 	ASSERT(fifo_get(&eth_outfifo) == 40);
@@ -542,8 +543,8 @@ TEST recv_can2udp_case(void) {
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	get_eth_mock(4);
 
-	ASSERT(fifo_get_count(&can_infifo) == 0);
-	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
+	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 	ASSERT(framestorage_item_next() == 0);
