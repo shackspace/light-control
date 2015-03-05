@@ -348,7 +348,7 @@ void power_packet_send(uint8_t addr, uint8_t cmd)
 	enocean_packet.data[0] = 1;
 	enocean_packet.data[1] = addr;
 	enocean_packet.data[2] = cmd;
-	can_send_message(&enocean_packet);
+	can_send_message_fifo(&enocean_packet);
 	can2udp(&enocean_packet);
 }
 
@@ -364,7 +364,7 @@ void enocean_packet_send(uint8_t addr, uint8_t cmd)
 	enocean_packet.length  = 3;
 	enocean_packet.data[1] = cmd;
 	enocean_packet.data[0] = addr;
-	can_send_message(&enocean_packet);
+	can_send_message_fifo(&enocean_packet);
 	can2udp(&enocean_packet);
 }
 

@@ -276,7 +276,7 @@ void can2udp_main(void) {
 		memcpy(&udp_snd_can_frame, &framestorage_data[cur_nr], sizeof(FS_DATA_TYPE));
 		framestorage_get(cur_nr);
 
-		if ( can_send_message(&udp_snd_can_frame) == 0 )
+		if ( can_send_message_fifo(&udp_snd_can_frame) == 0 )
 			lost_can_frames++;
 		//can_check_free_buffer();
 		//can2udp(&udp_snd_can_frame);
