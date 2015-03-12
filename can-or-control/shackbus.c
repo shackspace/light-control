@@ -77,6 +77,7 @@ void shackbus_init(void)
 	send_msg_blink_ret.data[1] = 0;
 	send_msg_blink_ret.data[2] = 0;
 
+	shackbus_startup_message();
 
 }
 
@@ -288,6 +289,35 @@ uint32_t shackbus_sb2id(shackbus_id_t* sb)
 	sb->prot &= 0x3F;
 
 	return (uint32_t)((uint32_t)0x80000000+((uint32_t)sb->prio<<26)+((uint32_t)sb->vlan<<22)+((uint32_t)sb->src<<14)+((uint32_t)sb->dst<<6)+(uint32_t)sb->prot);
+}
+
+void shackbus_startup_message(void)
+{
+		shackbus_id_t ka_id;
+		ka_id.prio = 1;
+		ka_id.vlan = 3;
+		ka_id.dst  = 255;
+		ka_id.src  = 8;
+		ka_id.prot = 1;
+
+		can_t ka;
+		memset(&ka,0,sizeof(can_t));
+		ka.id = shackbus_sb2id(&ka_id);
+		ka.length = 8;
+
+		ka.flags.extended = 1;
+		ka.flags.rtr = 0;
+
+		ka.data[0] = 0;
+		ka.data[1] = 0;
+		ka.data[2] = 0;
+		ka.data[3] = 0;
+		ka.data[4] = 0;
+		ka.data[5] = 0;
+		ka.data[6] = 0;
+		ka.data[7] = 0;
+
+		can_send_message_fifo(&ka);
 }
 
 #endif // USE_SHACKBUS
