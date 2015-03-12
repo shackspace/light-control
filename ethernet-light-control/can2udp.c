@@ -174,6 +174,23 @@ void can2udp(can_t *msg)
 	}
 }
 
+uint8_t can2udp_fifo_fs_id(uint8_t id)
+{
+	if(fifo_get_count(&can2udp_outfifo) > 8)
+		return false;
+	if(id==255)
+		return false;
+	if(can2udp_outfifo.count >= can2udp_outfifo.size)
+		return false;
+	if(framestorage_put(id)==0)
+		return false;
+	if(fifo_put (&can2udp_outfifo,id)==false)
+		return false;
+
+	return true;
+}
+
+
 uint8_t can2udp_get_next_message(uint8_t* msg);
 
 uint8_t can2udp_get_next_message(uint8_t* msg)
