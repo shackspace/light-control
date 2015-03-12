@@ -181,7 +181,7 @@ void power_mgt_msg_send(void)
 		ka.data[5] = (power_mgt_state[3].counter)/256;
 		ka.data[6] = power_mgt_state[3].counter;
 
-		can_send_message(&ka);
+		can_send_message_fifo(&ka);
 	}
 	return;
 }
