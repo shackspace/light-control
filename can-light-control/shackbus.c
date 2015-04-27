@@ -106,9 +106,11 @@ void shackbus_main(void)
 		shackbus_id.src  = 6;
 		shackbus_id.prot = 13;
 
+		memset(&msg,0,sizeof(can_t));
 		msg.id = shackbus_sb2id(&shackbus_id);
 		msg.length = 1;
 		msg.flags.extended = 1;
+		msg.flags.rtr = 0;
 
 		if (MAINSWITCH_STATE)
 			msg.data[0] = 1;
