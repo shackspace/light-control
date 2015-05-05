@@ -63,6 +63,16 @@ app.options('*', function(req, res) {
 	res.send(200);
 });
 
+app.put('*', function(req, res) {
+	res.send(404, 'not available');
+	logger.info('/: 404 not available');
+});
+
+app.get('*', function(req, res) {
+	res.send(404, 'not available');
+	logger.info('/: 404 not available');
+});
+
 app.all('*', function(req, res) {
 	res.send(405, 'Method not allowed');
 	logger.info('/: 405');
