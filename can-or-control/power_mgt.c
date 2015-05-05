@@ -168,10 +168,12 @@ void power_mgt_msg_send(void)
 		ka_id.prot = 12;
 
 		can_t ka;
+		memset(&ka,0,sizeof(can_t));
 		ka.id = shackbus_sb2id(&ka_id);
 		ka.length = 7;
 
 		ka.flags.extended = 1;
+		ka.flags.rtr = 0;
 
 		ka.data[0] = power_mgt_state[0].state;
 		ka.data[1] = power_mgt_state[1].state;
