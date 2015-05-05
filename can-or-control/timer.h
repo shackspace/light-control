@@ -31,6 +31,14 @@
 	void timer_init(void);
 
 	extern volatile uint8_t merker;
- 
+
+	typedef union
+	{
+		uint8_t type8[8];
+		uint64_t type64;
+	} system_time_t;
+
+	extern volatile system_time_t system_time;
+
 #endif //_TIMER_H
 
