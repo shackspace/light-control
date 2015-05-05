@@ -49,6 +49,7 @@ volatile uint8_t key_press = 0;                                // key press dete
 
 volatile uint8_t merker = 0;
 
+volatile system_time_t system_time;		//100ms tick since startup
 
 
 //----------------------------------------------------------------------------
@@ -162,6 +163,14 @@ void timer_init (void)
 			shackbus_tick();
 		#endif //USE_SHACKBUS
 
+	}
+
+	static uint16_t    prescaler_100ms = 333;
+	if(!prescaler_100ms--)
+	{
+		prescaler_100ms = 19;
+
+		system_time.type64++;
 	}
 }
 
