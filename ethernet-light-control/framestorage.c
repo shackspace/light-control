@@ -21,6 +21,7 @@
 
 
 FS_DATA_TYPE framestorage_data[FS_DATA_SIZE];
+uint8_t framestorage_state[FS_DATA_SIZE];
 
 
 // ----------------------------------------------------------------------------
@@ -28,17 +29,33 @@ FS_DATA_TYPE framestorage_data[FS_DATA_SIZE];
 void framestorage_init(void) {
 	uint8_t i;
 	for (i=0;i<FS_DATA_SIZE;i++) {
-		framestorage_item_clear(i);
+		memset(&framestorage_data[i],0,sizeof(FS_DATA_TYPE));
+		framestorage_state[i] = 0;
 	}
 	return;
 }
 
 
 // ----------------------------------------------------------------------------
-// clear item
-void framestorage_item_clear(uint8_t unit_id) {
-	memset(&framestorage_data[unit_id],0,sizeof(FS_DATA_TYPE));
-	return;
+// decrease frame usage-counter
+uint8_t framestorage_get(uint8_t unit_id) {
+	if (framestorage_state[unit_id] == 0)
+		return 255;
+	if (framestorage_state[unit_id] > 0)
+		framestorage_state[unit_id]--;
+	if (framestorage_state[unit_id] == 0)
+		memset(&framestorage_data[unit_id],0,sizeof(FS_DATA_TYPE));
+
+	return framestorage_state[unit_id];
+}
+
+
+// ----------------------------------------------------------------------------
+// increase frame usage-counter
+uint8_t framestorage_put(uint8_t unit_id) {
+	framestorage_state[unit_id]++;
+
+	return framestorage_state[unit_id];
 }
 
 
@@ -47,7 +64,7 @@ void framestorage_item_clear(uint8_t unit_id) {
 uint8_t framestorage_item_next(void) {
 	uint8_t i;
 	for (i=0;i<FS_DATA_SIZE;i++) {
-		if (framestorage_data[i].state == 0)
+		if (FS_STATUS_CHECK)
 			return i;
 	}
 	return 255;
