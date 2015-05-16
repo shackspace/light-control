@@ -418,7 +418,7 @@ TEST recv_can2udp_case(void) {
 	send_msg_cmp.data[2]=0;
 
 	bool can_compare_sended(can_t msg);
-	can_compare_sended(send_msg_cmp);
+	ASSERT(can_compare_sended(send_msg_cmp));
 
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
@@ -434,12 +434,15 @@ TEST recv_can2udp_case(void) {
 	eth_buffer[UDP_DATA_START+2] = 0;
 	eth_buffer[UDP_DATA_START+3] = 0;
 
-	eth_buffer[UDP_DATA_START+4] = 0; //LEN
+	eth_buffer[UDP_DATA_START+4] = 1; //LEN
 	eth_buffer[UDP_DATA_START+5] = 1; //State
 	eth_buffer[UDP_DATA_START+6] = 1; //SEQ
 	eth_buffer[UDP_DATA_START+7] = 0;
+	eth_buffer[UDP_DATA_START+8] = 25;
 	ASSERT(lost_can_frames3 == 0);
 	ASSERT(c2u_state == 1);
+	send_msg_cmp.length  = 1;
+	send_msg_cmp.data[0]=25;
 	can2udp_get(0);
 	ASSERT(lost_can_frames3 == 0);
 	ASSERT(c2u_state == 1);
