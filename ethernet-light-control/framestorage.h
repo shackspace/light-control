@@ -22,17 +22,20 @@
 	#include <avr/io.h>
 	#include <string.h>
 	
-	#include "can2udp.h"
+	#include "can.h"
 
 	#define FS_DATA_SIZE 20
 
-	#define FS_DATA_TYPE can_frame_t
+	#define FS_DATA_TYPE can_t
+	#define FS_STATUS_CHECK (framestorage_state[i] == 0)
 
 	extern FS_DATA_TYPE framestorage_data[];
+	extern uint8_t framestorage_state[];
 
 
 	void framestorage_init(void);
-	void framestorage_item_clear(uint8_t unit_id);
+	uint8_t framestorage_get(uint8_t unit_id);
+	uint8_t framestorage_put(uint8_t unit_id);
 	uint8_t framestorage_item_next(void);
 
 #endif

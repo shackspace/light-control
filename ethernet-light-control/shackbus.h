@@ -21,6 +21,7 @@
 	void shackbus_tick(void);
 
 	uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2);
+	uint8_t can_send_message_fifo(const can_t *msg);
 
 	typedef struct
 	{
