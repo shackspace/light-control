@@ -18,6 +18,11 @@
 #include "can.h"
 #include "enocean.h"
 #include "can2udp.h"
+#include "fifo.h"
+#include "framestorage.h"
+
+fifo_t can_outfifo;
+static uint8_t can_outbuf[10];
 
 const uint8_t PROGMEM can_filter[] = 
 {
@@ -50,10 +55,25 @@ void shackbus_init(void)
 #ifdef UART_DEBUG
 	uart_write("can_static_filter(can_filter);");
 #endif
+
+	fifo_init (&can_outfifo,   can_outbuf, 10);
+	framestorage_init();
+
+
 }
 
 void shackbus_main(void)
 {
+	if ( fifo_get_count(&can_outfifo) > 0  )
+	{
+		uint8_t cur_nr = fifo_read (&can_outfifo);
+		if ( can_send_message(&framestorage_data[cur_nr]) )
+		{
+			fifo_get (&can_outfifo);
+			framestorage_get(cur_nr);
+		}
+	}
+
 	// Check if a new messag was received
 	if (can_check_message())
 	{
@@ -87,7 +107,21 @@ void shackbus_main(void)
 			}
 		}
 	}
+}
 
+
+uint8_t can_send_message_fifo(const can_t *msg)
+{
+	uint8_t nextfreeid = framestorage_item_next();
+	if(fifo_get_count(&can_outfifo) <= 8 && nextfreeid != 255)
+	{
+		memcpy(&framestorage_data[nextfreeid], msg, sizeof(FS_DATA_TYPE));
+		framestorage_put(nextfreeid);
+		fifo_put (&can_outfifo,nextfreeid);
+	} else {
+		return false;
+	}
+	return true;
 }
 
 void shackbus_tick(void)
