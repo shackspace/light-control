@@ -142,6 +142,7 @@ TEST shackbus_mock_can_outfifo_case(void) {
 	extern fifo_t mock_can_outfifo;
 	extern fifo_t mock_can_infifo;
 	shackbus_init();
+	shackbus_main();
 	can_mock_init();
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
 	shackbus_main();
@@ -184,6 +185,7 @@ TEST shackbus_case(void) {
 	extern fifo_t mock_can_outfifo;
 	extern fifo_t mock_can_infifo;
 	shackbus_init();
+	shackbus_main();
 	can_mock_init();
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
@@ -229,6 +231,7 @@ TEST shackbus_ping_case(void) {
 	extern fifo_t mock_can_outfifo;
 	extern fifo_t mock_can_infifo;
 	shackbus_init();
+	shackbus_main();
 	can_mock_init();
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
@@ -276,6 +279,7 @@ TEST shackbus_jump2bootloader_case(void) {
 	extern fifo_t mock_can_outfifo;
 	extern fifo_t mock_can_infifo;
 	shackbus_init();
+	shackbus_main();
 	can_mock_init();
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
