@@ -41,6 +41,7 @@ extern uint8_t uart_size_buffer_tx(void);
 extern uint8_t uart_size_buffer_rx(void);
 
 extern void uart_enable_tx(void);
+extern void uart_disable_tx(void);
 
 #define DIRECTION_CONTROL	0
 
