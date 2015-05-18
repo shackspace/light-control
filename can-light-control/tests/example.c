@@ -116,6 +116,28 @@ TEST enocean_case(void) {
 	PASS();
 }
 
+TEST shackbus_send_message_enable_case(void) {
+	extern bool can_mock_send_message_enable;
+
+	shackbus_init();
+	shackbus_main();
+	can_mock_init();
+	can_mock_send_message_enable = false;
+	shackbus_main();
+
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+	fifo_put (&can_outfifo, 0);
+	ASSERT(fifo_get_count(&can_outfifo) == 1);
+	shackbus_main();
+	ASSERT(fifo_get_count(&can_outfifo) == 1);
+
+	can_mock_send_message_enable = true;
+	shackbus_main();
+	ASSERT(fifo_get_count(&can_outfifo) == 0);
+
+	PASS();
+}
+
 TEST shackbus_mock_can_outfifo_case(void) {
 	extern fifo_t mock_can_outfifo;
 	extern fifo_t mock_can_infifo;
@@ -293,6 +315,7 @@ SUITE(suite) {
 	RUN_TEST(framestorage_case);
 	RUN_TEST(uart_case);
 	RUN_TEST(enocean_case);
+	RUN_TEST(shackbus_send_message_enable_case);
 	RUN_TEST(shackbus_mock_can_outfifo_case);
 	RUN_TEST(shackbus_case);
 	RUN_TEST(shackbus_ping_case);

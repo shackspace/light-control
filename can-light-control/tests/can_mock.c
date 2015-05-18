@@ -16,12 +16,15 @@ uint8_t outbuf[100];
 fifo_t mock_can_infifo;
 uint8_t inbuf[100];
 
+bool can_mock_send_message_enable = true;
+
 void can_mock_init(void);
 
 void can_mock_init(void)
 {
 	fifo_init (&mock_can_outfifo,   outbuf, 100);
 	fifo_init (&mock_can_infifo,   inbuf, 100);
+	can_mock_send_message_enable = true;
 	return;
 }
 
@@ -72,6 +75,7 @@ uint8_t can_send_message(const can_t *msg)
 	fifo_put_var(&mock_can_outfifo, &msg->length, 1);
 	fifo_put_var(&mock_can_outfifo, &msg->data, 8);
 
+	return can_mock_send_message_enable;
 
 };
 
