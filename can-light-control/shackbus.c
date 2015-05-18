@@ -15,6 +15,7 @@
 #include <avr/io.h>
 #include <avr/wdt.h>
 
+#include "timer.h"
 #include "shackbus.h"
 #include "can.h"
 #include "enocean.h"
@@ -45,8 +46,9 @@ const uint8_t PROGMEM can_filter[] =
 };
 // You can receive 11 bit identifiers with either group 0 or 1.
 
+can_t send_msg_blink_ret;
 
-	can_t send_msg_blink_ret;
+uint8_t shackbus_system_time_send_flag = 0;
 
 void shackbus_startup_message(void);
 
@@ -202,6 +204,37 @@ void shackbus_main(void)
 			}
 		}
 	}
+
+	if (shackbus_system_time_send_flag >= 60)
+	{
+		shackbus_system_time_send_flag = 0;
+
+		shackbus_id_t ka_id;
+		ka_id.prio = 1;
+		ka_id.vlan = 3;
+		ka_id.dst  = 255;
+		ka_id.src  = 6;
+		ka_id.prot = 2;
+
+		can_t ka;
+		memset(&ka,0,sizeof(can_t));
+		ka.id = shackbus_sb2id(&ka_id);
+		ka.length = 8;
+
+		ka.flags.extended = 1;
+		ka.flags.rtr = 0;
+
+		uint8_t sreg = SREG;
+		cli();
+
+		for (uint8_t i = 0;i<8;i++)
+			ka.data[i] = system_time.type8[i];
+
+		SREG = sreg;
+
+		can_send_message_fifo(&ka);
+	}
+
 }
 
 uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2)
@@ -231,21 +264,9 @@ void shackbus_tick(void)
 {
 	shackbus_msg_send_flag = 1;
 
+	shackbus_system_time_send_flag++;
 
-//	can_t ka;
-//	shackbus_id_t ka_id;
-//	ka_id.prio = 3;
-//	ka_id.vlan = 4;
-//	ka_id.dst  = 5;
-//	ka_id.src  = 6;
-//	ka_id.prot = 10;
-
-//	ka.id = shackbus_sb2id(&ka_id);
-//	ka.length = 2;
-//	ka.data[0] = 23;
-//	ka.data[1] = 42;
-				
-//	can_send_message(&ka);
+	return;
 }
 
 uint8_t shackbus_id2sb(shackbus_id_t* shackbus, can_t* msg)
