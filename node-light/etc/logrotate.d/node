@@ -1,0 +1,10 @@
+/var/log/node/*.log
+{
+	rotate 50
+	daily
+	missingok
+	notifempty
+	compress
+	delaycompress
+	sharedscripts
+}

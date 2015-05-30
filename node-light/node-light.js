@@ -12,14 +12,16 @@ var power_state = nconf.get('power_state');
 
 
 var winston = require('winston');
+var PosixSyslog = require('winston-posix-syslog').PosixSyslog;
 
 var logger = new (winston.Logger)({
 	transports: [
 		new (winston.transports.Console)({colorize: 'all'}),
-		new winston.transports.DailyRotateFile({
+		new (winston.transports.DailyRotateFile)({
 			filename: __dirname + '/log/logfile.log',
 			datePattern: '.dd-MM-yyyy'
-		})
+		}),
+		new (PosixSyslog)({identity: 'node-light'})
 	]
 });
 

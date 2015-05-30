@@ -35,3 +35,6 @@ sudo joe /usr/share/nginx/html/index.html
 sudo apt-get update
 sudo apt-get upgrade
 
+#31.05.2015
+#use the standard ubuntu nodejs
+sudo apt-get install nodejs npm nodejs-legacy
