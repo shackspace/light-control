@@ -18,6 +18,13 @@ uint8_t PORTD = 0;
 
 uint8_t key_state = 0;
 
+typedef union
+{
+	uint8_t type8[8];
+	uint64_t type64;
+} system_time_t;
+volatile system_time_t system_time;
+
 
 void eeprom_read_block(uint8_t tmp, uint8_t tmp2, uint8_t tmp3)
 {
