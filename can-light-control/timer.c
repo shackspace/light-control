@@ -45,6 +45,8 @@ volatile uint8_t key_press = 0;                                // key press dete
 
 volatile uint8_t merker = 0;
 
+volatile system_time_t system_time;		//100ms tick since startup
+
 
 //----------------------------------------------------------------------------
 //Diese Routine startet und inizialisiert den Timer
@@ -161,6 +163,7 @@ void timer_init (void)
 	{
 		prescaler_100ms = 19;
 
+		system_time.type64++;
 	}
 }
 
