@@ -21,7 +21,10 @@ void create_new_udp_packet( unsigned int  data_length, unsigned int  src_port, u
 	fifo_put_var (&eth_outfifo, &eth_buffer[UDP_DATA_START+0], data_length);
 };
 char arp_request (unsigned long var){};
-char arp_entry_search (unsigned long var){};
+char arp_entry_search (unsigned long var){
+	if (var == 1) return 0; // c2u_remote_ip = 1;
+	return MAX_ARP_ENTRY;
+};
 
 
 unsigned char myip[4];

@@ -56,131 +56,108 @@ TEST send_udp_msg_case(void) {
 
 	clean_eth_buffer();
 	send_udp_msg(0,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 20);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(1,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 21);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 0);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(2,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 22);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(3,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 23);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(4,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 24);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 2);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(5,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 25);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 3);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(6,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 26);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(7,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 27);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(8,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 28);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 5);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(9,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 29);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 6);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(10,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 8);
+	ASSERT(fifo_get_count(&eth_outfifo) == 4);
 	ASSERT(fifo_get(&eth_outfifo) == 30);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 	ASSERT(fifo_get(&eth_outfifo) == 7);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
 	send_udp_msg(11,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 4);
+	ASSERT(fifo_get_count(&eth_outfifo) == 2);
 	ASSERT(fifo_get(&eth_outfifo) == 31);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(2);
 
 
 	clean_eth_buffer();
@@ -190,11 +167,37 @@ TEST send_udp_msg_case(void) {
 
 	clean_eth_buffer();
 	send_udp_msg(120,1);
-	ASSERT(fifo_get_count(&eth_outfifo) == 6);
+	ASSERT(fifo_get_count(&eth_outfifo) == 2);
 	ASSERT(fifo_get(&eth_outfifo) == 10);
 	ASSERT(fifo_get(&eth_outfifo) == 1);
-	get_eth_mock(4);
 
+
+	clean_eth_buffer();
+	send_udp_msg(140,1);
+	ASSERT(fifo_get_count(&eth_outfifo) == 2);
+	ASSERT(fifo_get(&eth_outfifo) == 140);
+	ASSERT(fifo_get(&eth_outfifo) == 1);
+
+
+	clean_eth_buffer();
+	send_udp_msg(141,1);
+	ASSERT(fifo_get_count(&eth_outfifo) == 2);
+	ASSERT(fifo_get(&eth_outfifo) == 141);
+	ASSERT(fifo_get(&eth_outfifo) == 1);
+
+
+	clean_eth_buffer();
+	send_udp_msg(142,1);
+	ASSERT(fifo_get_count(&eth_outfifo) == 2);
+	ASSERT(fifo_get(&eth_outfifo) == 142);
+	ASSERT(fifo_get(&eth_outfifo) == 1);
+
+
+	clean_eth_buffer();
+	send_udp_msg(143,1);
+	ASSERT(fifo_get_count(&eth_outfifo) == 2);
+	ASSERT(fifo_get(&eth_outfifo) == 143);
+	ASSERT(fifo_get(&eth_outfifo) == 1);
 
 
 	PASS();
