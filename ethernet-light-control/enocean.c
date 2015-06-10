@@ -74,12 +74,9 @@ void enocean_netInit(void)
 	// add port to stack with callback
 	add_udp_app(enocean_port, (void(*)(unsigned char))enocean_get);
 
-	// remote_ip = IP(10,42,3,176);
-	remote_ip = IP(10,42,0,111);
-	// remote_ip = IP(192,168,2,100);
-	// remote_ip = IP(192,168,2,100);
+	remote_ip = IP(10,42,0,111); // old standby.shack
 
-	remote_ip_openhab = IP(10,42,0,117);
+	remote_ip_openhab = IP(10,42,0,117); // old openhab.shack
 }
 
 
@@ -125,8 +122,11 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		eth_buffer[UDP_DATA_START+0]=addr+20;
 		eth_buffer[UDP_DATA_START+1]=cmd;
 
-		create_new_udp_packet(2, 2342, 2342, remote_ip);
-		create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
+		create_new_udp_packet(2, 2342, 2342, 0xffffffff); //legacy Support
+		if (arp_entry_search(remote_ip) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip);
+		if (arp_entry_search(remote_ip_openhab) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
 	}
 
 	if (addr >= 0 && addr <= 10)
@@ -147,7 +147,6 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		eth_buffer[UDP_DATA_START+1]=cmd;
 
 		create_new_udp_packet(2, 2342, 2342, 0xffffffff);
-		create_new_udp_packet(2, 2341, 2341, 0xffffffff); //zweiter Port damit auf einem Rechner zwei Programme die events abfangen koennen
 	}	
 
 	if (addr == 120 || ( addr >= 140 && addr <= 143))
@@ -158,8 +157,10 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		eth_buffer[UDP_DATA_START+1]=cmd;
 
 		create_new_udp_packet(2, 2342, 2342, 0xffffffff);
-		create_new_udp_packet(2, 2342, 2342, remote_ip);
-		create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
+		if (arp_entry_search(remote_ip) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip);
+		if (arp_entry_search(remote_ip_openhab) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
 
 	}	
 
