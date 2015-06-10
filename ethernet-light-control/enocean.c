@@ -36,6 +36,8 @@
 
 #include "can2udp.h"
 
+#include "framestorage.h"
+
 // ----------------------------------------------------------------------------
 // default values
 #define PORT_DEFAULT			1337
@@ -340,33 +342,39 @@ msg.id = shackbus_sb2id(&sb);
 void power_packet_send(uint8_t addr, uint8_t cmd)
 {
 	// Send the message to can-bus and can2udp
-	can_t enocean_packet;
+	uint8_t nextfreeid = framestorage_item_next();
+	if ( nextfreeid == 255 ) return;
+	FS_DATA_TYPE *enocean_packet = &framestorage_data[nextfreeid];
 	/* prio = 3; vlan = 4; src  = 5; dst = 6, prot = 11 */
-	enocean_packet.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+11L);
-	enocean_packet.flags.rtr = 0;
-	enocean_packet.flags.extended = 1;
-	enocean_packet.length  = 3;
-	enocean_packet.data[0] = 1;
-	enocean_packet.data[1] = addr;
-	enocean_packet.data[2] = cmd;
-	can_send_message_fifo(&enocean_packet);
-	can2udp(&enocean_packet);
+	enocean_packet->id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+11L);
+	enocean_packet->flags.rtr = 0;
+	enocean_packet->flags.extended = 1;
+	enocean_packet->length  = 3;
+	enocean_packet->data[0] = 1;
+	enocean_packet->data[1] = addr;
+	enocean_packet->data[2] = cmd;
+
+	can_send_message_fifo_fs_id(nextfreeid);
+	can2udp_fifo_fs_id(nextfreeid);
 }
 
 
 void enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
 	// Send the message to can-bus and can2udp
-	can_t enocean_packet;
+	uint8_t nextfreeid = framestorage_item_next();
+	if ( nextfreeid == 255 ) return;
+	FS_DATA_TYPE *enocean_packet = &framestorage_data[nextfreeid];
 	/* prio = 3; vlan = 4; src  = 5; dst = 6, prot = 9 */
-	enocean_packet.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+9L);
-	enocean_packet.flags.rtr = 0;
-	enocean_packet.flags.extended = 1;
-	enocean_packet.length  = 3;
-	enocean_packet.data[1] = cmd;
-	enocean_packet.data[0] = addr;
-	can_send_message_fifo(&enocean_packet);
-	can2udp(&enocean_packet);
+	enocean_packet->id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+9L);
+	enocean_packet->flags.rtr = 0;
+	enocean_packet->flags.extended = 1;
+	enocean_packet->length  = 3;
+	enocean_packet->data[1] = cmd;
+	enocean_packet->data[0] = addr;
+
+	can_send_message_fifo_fs_id(nextfreeid);
+	can2udp_fifo_fs_id(nextfreeid);
 }
 
 
