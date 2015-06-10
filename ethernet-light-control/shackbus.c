@@ -113,11 +113,9 @@ void shackbus_main(void)
 uint8_t can_send_message_fifo(const can_t *msg)
 {
 	uint8_t nextfreeid = framestorage_item_next();
-	if(fifo_get_count(&can_outfifo) <= 8 && nextfreeid != 255)
+	if(can_send_message_fifo_fs_id(nextfreeid))
 	{
 		memcpy(&framestorage_data[nextfreeid], msg, sizeof(FS_DATA_TYPE));
-		framestorage_put(nextfreeid);
-		fifo_put (&can_outfifo,nextfreeid);
 	} else {
 		return false;
 	}

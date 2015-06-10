@@ -163,11 +163,10 @@ void can2udp(can_t *msg)
 {
 
 	uint8_t nextfreeid = framestorage_item_next();
-	if (fifo_get_count(&can2udp_outfifo) <= 8 && nextfreeid != 255 )
+	if (can2udp_fifo_fs_id(nextfreeid))
 	{
 		memcpy(&framestorage_data[nextfreeid], msg, sizeof(FS_DATA_TYPE));
-		fifo_put (&can2udp_outfifo,nextfreeid);
-		framestorage_put(nextfreeid);
+		return;
 	} else {
 		if (fifo_get_count(&can2udp_outfifo) > 8) lost_can_frames++;
 		if (nextfreeid == 255)                 lost_can_frames2++;
