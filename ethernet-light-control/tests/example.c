@@ -391,7 +391,7 @@ TEST recv_can2udp_case(void) {
 
 	ASSERT(c2u_con_state_tx == 2);
 
-	ASSERT(fifo_get_count(&can2udp_infifo) == 1);
+	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
 	ASSERT(fifo_get_count(&can2udp_outfifo) == 1);
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
@@ -410,22 +410,18 @@ TEST recv_can2udp_case(void) {
 	ASSERT(fifo_get_count(&eth_outfifo) == 0);
 
 
-
-	can_t send_msg_cmp;
-	send_msg_cmp.id = 0;//((10L<<24)+(20L<<16)+(30L<<8)+40L);  //Absender = 2   Empfänger = 1
-	send_msg_cmp.flags.rtr = 0;
-	send_msg_cmp.flags.extended = 0;
-	send_msg_cmp.length  = 0;
-	send_msg_cmp.data[0]=0;
-	send_msg_cmp.data[1]=0;
-	send_msg_cmp.data[2]=0;
-
-	bool can_compare_sended(can_t msg);
-	ASSERT(can_compare_sended(send_msg_cmp));
-
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
 	ASSERT(fifo_get_count(&mock_can_infifo) == 0);
 
+
+	can_t send_msg_cmp;
+	send_msg_cmp.id = 0;
+	send_msg_cmp.flags.rtr = 0;
+	send_msg_cmp.flags.extended = 0;
+	send_msg_cmp.length  = 1;
+	send_msg_cmp.data[0]=25;
+	send_msg_cmp.data[1]=0;
+	send_msg_cmp.data[2]=0;
 
 	eth_buffer[IP_PKTLEN]   = 0;
 	eth_buffer[IP_PKTLEN+1] = 16 + 28;
@@ -441,15 +437,14 @@ TEST recv_can2udp_case(void) {
 	eth_buffer[UDP_DATA_START+5] = 1; //State
 	eth_buffer[UDP_DATA_START+6] = 1; //SEQ
 	eth_buffer[UDP_DATA_START+7] = 0;
-	eth_buffer[UDP_DATA_START+8] = 25;
+
+	eth_buffer[UDP_DATA_START+8] = 25; //Data[0]
+
 	ASSERT(lost_can_frames3 == 0);
 	ASSERT(c2u_state == 1);
-	send_msg_cmp.length  = 1;
-	send_msg_cmp.data[0]=25;
 	can2udp_get(0);
 	ASSERT(lost_can_frames3 == 0);
 	ASSERT(c2u_state == 1);
-
 
 
 	ASSERT(fifo_get_count(&can2udp_infifo) == 1);
@@ -473,6 +468,7 @@ TEST recv_can2udp_case(void) {
 	ASSERT(fifo_get_count(&can2udp_infifo) == 0);
 	ASSERT(fifo_get_count(&can2udp_outfifo) == 0);
 
+	bool can_compare_sended(can_t msg);
 	ASSERT(can_compare_sended(send_msg_cmp));
 
 	ASSERT(fifo_get_count(&mock_can_outfifo) == 0);
