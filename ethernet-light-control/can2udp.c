@@ -286,15 +286,12 @@ void can2udp_main(void) {
 
 	if ( (fifo_get_count(&can2udp_infifo) > 0) && can_check_free_buffer() ) {
 
-		static can_t       udp_snd_can_frame;
-
-		memset(&udp_snd_can_frame,0,sizeof(can_t));    
 		uint8_t cur_nr = fifo_get (&can2udp_infifo);
-		memcpy(&udp_snd_can_frame, &framestorage_data[cur_nr], sizeof(FS_DATA_TYPE));
-		framestorage_get(cur_nr);
 
-		if ( can_send_message_fifo(&udp_snd_can_frame) == 0 )
+		if ( can_send_message_fifo_fs_id(cur_nr) != 0 )
 			lost_can_frames++;
+
+		framestorage_get(cur_nr);
 		//can_check_free_buffer();
 		//can2udp(&udp_snd_can_frame);
 
