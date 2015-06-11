@@ -291,9 +291,6 @@ void can2udp_main(void) {
 			lost_can_frames++;
 
 		framestorage_get(cur_nr);
-		//can_check_free_buffer();
-		//can2udp(&udp_snd_can_frame);
-
 	}
 
 
