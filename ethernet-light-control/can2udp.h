@@ -30,6 +30,7 @@
 	void can2udp_tick_10ms(void);
 	void can2udp_packet_send(uint8_t addr, uint8_t status);
 	void can2udp(can_t *msg);
+	uint8_t can2udp_fifo_fs_id(uint8_t id);
 
 	typedef struct
 	{

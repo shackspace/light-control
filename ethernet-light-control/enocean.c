@@ -36,6 +36,8 @@
 
 #include "can2udp.h"
 
+#include "framestorage.h"
+
 // ----------------------------------------------------------------------------
 // default values
 #define PORT_DEFAULT			1337
@@ -74,12 +76,9 @@ void enocean_netInit(void)
 	// add port to stack with callback
 	add_udp_app(enocean_port, (void(*)(unsigned char))enocean_get);
 
-	// remote_ip = IP(10,42,3,176);
-	remote_ip = IP(10,42,0,111);
-	// remote_ip = IP(192,168,2,100);
-	// remote_ip = IP(192,168,2,100);
+	remote_ip = IP(10,42,0,111); // old standby.shack
 
-	remote_ip_openhab = IP(10,42,0,117);
+	remote_ip_openhab = IP(10,42,0,117); // old openhab.shack
 }
 
 
@@ -125,8 +124,11 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		eth_buffer[UDP_DATA_START+0]=addr+20;
 		eth_buffer[UDP_DATA_START+1]=cmd;
 
-		create_new_udp_packet(2, 2342, 2342, remote_ip);
-		create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
+		create_new_udp_packet(2, 2342, 2342, 0xffffffff); //legacy Support
+		if (arp_entry_search(remote_ip) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip);
+		if (arp_entry_search(remote_ip_openhab) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
 	}
 
 	if (addr >= 0 && addr <= 10)
@@ -147,7 +149,6 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		eth_buffer[UDP_DATA_START+1]=cmd;
 
 		create_new_udp_packet(2, 2342, 2342, 0xffffffff);
-		create_new_udp_packet(2, 2341, 2341, 0xffffffff); //zweiter Port damit auf einem Rechner zwei Programme die events abfangen koennen
 	}	
 
 	if (addr == 120 || ( addr >= 140 && addr <= 143))
@@ -158,8 +159,10 @@ void send_udp_msg(uint8_t addr, uint8_t cmd)
 		eth_buffer[UDP_DATA_START+1]=cmd;
 
 		create_new_udp_packet(2, 2342, 2342, 0xffffffff);
-		create_new_udp_packet(2, 2342, 2342, remote_ip);
-		create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
+		if (arp_entry_search(remote_ip) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip);
+		if (arp_entry_search(remote_ip_openhab) !=MAX_ARP_ENTRY)
+			create_new_udp_packet(2, 2342, 2342, remote_ip_openhab);
 
 	}	
 
@@ -339,33 +342,39 @@ msg.id = shackbus_sb2id(&sb);
 void power_packet_send(uint8_t addr, uint8_t cmd)
 {
 	// Send the message to can-bus and can2udp
-	can_t enocean_packet;
+	uint8_t nextfreeid = framestorage_item_next();
+	if ( nextfreeid == 255 ) return;
+	FS_DATA_TYPE *enocean_packet = &framestorage_data[nextfreeid];
 	/* prio = 3; vlan = 4; src  = 5; dst = 6, prot = 11 */
-	enocean_packet.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+11L);
-	enocean_packet.flags.rtr = 0;
-	enocean_packet.flags.extended = 1;
-	enocean_packet.length  = 3;
-	enocean_packet.data[0] = 1;
-	enocean_packet.data[1] = addr;
-	enocean_packet.data[2] = cmd;
-	can_send_message_fifo(&enocean_packet);
-	can2udp(&enocean_packet);
+	enocean_packet->id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+11L);
+	enocean_packet->flags.rtr = 0;
+	enocean_packet->flags.extended = 1;
+	enocean_packet->length  = 3;
+	enocean_packet->data[0] = 1;
+	enocean_packet->data[1] = addr;
+	enocean_packet->data[2] = cmd;
+
+	can_send_message_fifo_fs_id(nextfreeid);
+	can2udp_fifo_fs_id(nextfreeid);
 }
 
 
 void enocean_packet_send(uint8_t addr, uint8_t cmd)
 {
 	// Send the message to can-bus and can2udp
-	can_t enocean_packet;
+	uint8_t nextfreeid = framestorage_item_next();
+	if ( nextfreeid == 255 ) return;
+	FS_DATA_TYPE *enocean_packet = &framestorage_data[nextfreeid];
 	/* prio = 3; vlan = 4; src  = 5; dst = 6, prot = 9 */
-	enocean_packet.id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+9L);
-	enocean_packet.flags.rtr = 0;
-	enocean_packet.flags.extended = 1;
-	enocean_packet.length  = 3;
-	enocean_packet.data[1] = cmd;
-	enocean_packet.data[0] = addr;
-	can_send_message_fifo(&enocean_packet);
-	can2udp(&enocean_packet);
+	enocean_packet->id = ((3L<<26)+(4L<<22)+(5L<<14)+(6L<<6)+9L);
+	enocean_packet->flags.rtr = 0;
+	enocean_packet->flags.extended = 1;
+	enocean_packet->length  = 3;
+	enocean_packet->data[1] = cmd;
+	enocean_packet->data[0] = addr;
+
+	can_send_message_fifo_fs_id(nextfreeid);
+	can2udp_fifo_fs_id(nextfreeid);
 }
 
 
