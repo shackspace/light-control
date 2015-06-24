@@ -22,6 +22,7 @@
 
 	uint8_t shackbus_send_msg(uint8_t val1, uint8_t val2);
 	uint8_t can_send_message_fifo(const can_t *msg);
+	uint8_t can_send_message_fifo_fs_id(uint8_t id);
 
 	typedef struct
 	{
