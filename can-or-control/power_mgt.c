@@ -75,7 +75,13 @@ void power_mgt_init(void)
 
 void power_mgt_main(void)
 {
-	power_mgt_state[0].input_1 = key_state & _BV(PD2);
+	power_mgt_state[0].input_1 = key_state & _BV(PD5);
+	
+	if (power_mgt_state[0].input_1) {
+		PORTC |= (1<<PC2);
+	} else {
+		PORTC &= ~(1<<PC2);
+	}
 
 	static uint8_t i = POWER_MGT_CHANNEL_COUNT;
 
