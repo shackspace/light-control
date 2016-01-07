@@ -19,6 +19,10 @@ uint8_t PORTC;
 uint8_t PORTD;
 
 #define PD2 2
+#define PD5 5
+#define PC2 2
+#define PC3 3
+
 #define _BV(bit) 	   (1 << (bit))
 
 
