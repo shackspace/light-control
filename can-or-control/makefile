@@ -61,7 +61,7 @@ endif
 
 #Fuse settings for ATmega8
 ifeq ($(MCU), atmega8)
-	FUSE_BITS = -u -U lfuse:w:0xbe:m -U hfuse:w:0xd2:m
+	FUSE_BITS = -u -U lfuse:w:0x90:m -U hfuse:w:0xd2:m
 	HEX_FILE_NAME = MEGA8
 endif
 
@@ -189,7 +189,7 @@ AVRDUDE_PROGRAMMER = stk500v2
 AVRDUDE_PORT = /dev/ttyUSB0	       # programmer connected to parallel port
 
 #AVRDUDE_WRITE_FLASH = -D -U flash:w:$(TARGET).hex $(FUSE_BITS)
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex $(FUSE_BITS)
+AVRDUDE_WRITE_FLASH = -D -U flash:w:$(TARGET).hex $(FUSE_BITS)
 #AVRDUDE_WRITE_EEPROM = -U eeprom:w:$(TARGET).eep
 
 #AVRDUDE_FLAGS = -p $(MCU) -P $(AVRDUDE_PORT) -b 115200 -c $(AVRDUDE_PROGRAMMER)

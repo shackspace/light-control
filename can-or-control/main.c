@@ -45,6 +45,11 @@
 //Hier startet das Hauptprogramm
 int main(void)
 {  
+	// Set Output LED1 LED2
+	DDRC  |= (1<<PC3)|(1<<PC2);
+
+	// Set Output SPI SS Pin
+	DDRB = (1<<PB2);
 
 	// Configuration hmi (Human Machine Interface)
 	#if USE_HMI
@@ -79,6 +84,9 @@ int main(void)
 
 	wdt_enable(WDTO_500MS);
 	
+	// Activate LED1 - System OK
+	PORTC = (1<<PC3);
+
 	while(1)
 	{
 
