@@ -71,6 +71,10 @@ void uart_init()
     // FIFOs für Ein- und Ausgabe initialisieren 
     fifo_init (&uart_infifo,   uart_inbuf, BUFSIZE_IN);
     fifo_init (&uart_outfifo, uart_outbuf, BUFSIZE_OUT);
+
+	//MAX485 TX-Enable
+	PORTD |= (1<<PD2);
+	DDRD  |= (1<<PD2);
 }
 
 //----------------------------------------------------------------------------

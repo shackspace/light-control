@@ -400,7 +400,7 @@ TEST power_mgt_case(uint8_t channel, uint8_t old, uint8_t new, uint8_t future) {
 
 	power_mgt_init();
 	power_mgt_set_input_1(channel, new);	
-	if (channel == 0) if (new) key_state = 4; else key_state = 0;
+	if (channel == 0) if (new) key_state = (1<<PD5); else key_state = 0;
 	if (channel==3) power_mgt_set_wait_off(channel, 120*60);
 
 	enocean_state_set(channel,old);
@@ -415,7 +415,7 @@ TEST power_mgt_case(uint8_t channel, uint8_t old, uint8_t new, uint8_t future) {
 	ASSERT_EQ( enocean_state_get(channel), new);
 
 	power_mgt_set_input_1(channel, future);	
-	if (channel == 0) if (future) key_state = 4; else key_state = 0;
+	if (channel == 0) if (future) key_state = (1<<PD5); else key_state = 0;
 
 	power_mgt_case_tick_main(0, 2*4);
 	if (channel==3) power_mgt_case_tick_main(120*60, 2*4);
