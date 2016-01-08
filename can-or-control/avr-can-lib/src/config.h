@@ -42,8 +42,8 @@
  * Remember NOT to use them in your application!
  * It is a good idea to use bits from the port that carries MOSI, MISO, SCK.
  */
-#define	MCP2515_CS				B,2
-#define	MCP2515_INT				B,1
+#define	MCP2515_CS				B,1
+#define	MCP2515_INT				C,0
 
 // -----------------------------------------------------------------------------
 // Setting for SJA1000
