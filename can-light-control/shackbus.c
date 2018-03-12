@@ -202,6 +202,64 @@ void shackbus_main(void)
 				can_send_message_fifo(&msg);
 				enocean_packet_send(msg.data[1], msg.data[2]);
 			}
+
+			//prot=3 = Debug Interface
+			if (shackbus_id.dst == 6 && shackbus_id.prot ==3)
+			{
+				shackbus_id.prio = 3;
+				shackbus_id.vlan = 4;
+				shackbus_id.dst  = shackbus_id.src;
+				shackbus_id.src  = 6;
+				shackbus_id.prot = 3;
+
+				msg.id = shackbus_sb2id(&shackbus_id);
+
+				//data[0]=1 = FIFO usage  data[1]=1 = UART
+				if (msg.data[0]==1 && msg.data[1]==1)
+				{
+					msg.length = 6;
+					msg.data[2] = uart_size_free_buffer_tx();
+					msg.data[3] = uart_size_free_buffer_rx();
+					msg.data[4] = uart_size_buffer_tx();
+					msg.data[5] = uart_size_buffer_rx();
+
+					//Send the new message
+					can_send_message_fifo(&msg);
+				}
+
+				//data[0]=1 = FIFO usage  data[1]=2 = shackbus
+				else if (msg.data[0]==1 && msg.data[1]==2)
+				{
+					msg.length = 5;
+					msg.data[2] = can_outfifo.size - can_outfifo.count;
+					msg.data[3] = can_outfifo.count;
+					msg.data[4] = framestorage_item_next();
+
+					//Send the new message
+					can_send_message_fifo(&msg);
+				}
+
+				//data[0]=2 = reinitialize data[1]=1 = UART
+				else if (msg.data[0]==2 && msg.data[1]==1)
+				{
+					msg.length = 2;
+					uart_init();
+
+					//Send the new message
+					can_send_message_fifo(&msg);
+				}
+
+				//data[0]=2 = reinitialize data[1]=2 = shackbus
+				else if (msg.data[0]==2 && msg.data[1]==2)
+				{
+					msg.length = 2;
+					shackbus_init();
+
+					//Send the new message
+					can_send_message_fifo(&msg);
+				}
+
+			}
 		}
 	}
 
