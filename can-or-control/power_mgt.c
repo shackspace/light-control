@@ -105,6 +105,7 @@ void power_mgt_main(void)
 		case DO_OFF:
 			OUTPUT_OFF;
 			STATE = OFF;
+			break;
 
 		case OFF:
 			if ( !state->input_1 ) //OFF

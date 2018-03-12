@@ -124,7 +124,7 @@ unsigned long get_eeprom_value (unsigned int eeprom_adresse,unsigned long defaul
 	for (unsigned char count = 0; count<4;count++)
 	{
 		eeprom_busy_wait ();	
-		value[count] = eeprom_read_byte((unsigned char *)(eeprom_adresse + count));
+		value[count] = eeprom_read_byte((const uint8_t *)(eeprom_adresse + count));
 	}
 
 	//Ist der EEPROM Inhalt leer?
