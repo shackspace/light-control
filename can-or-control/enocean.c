@@ -136,9 +136,14 @@ uint8_t enocean_packet_send(uint8_t addr, uint8_t cmd)
 		packet_tmp[13] += packet_tmp[i];
 	}
 
+	uint8_t sreg = SREG;
+	cli();
+
 	for (uint8_t i = 0; i < 14; i++) {
 		uart_putc(packet_tmp[i]);
 	}
+
+	SREG = sreg;
 
 	return true;
 }
