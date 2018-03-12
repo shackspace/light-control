@@ -157,14 +157,14 @@ uint8_t uart_size_free_buffer_rx(void)
 }
 
 //----------------------------------------------------------------------------
-//Freier Speicher im Sendepuffer
+//Benutzter Speicher im Sendepuffer
 uint8_t uart_size_buffer_tx(void)
 {
 	return (uart_outfifo.count);
 }
 
 //----------------------------------------------------------------------------
-//Freier Speicher im Sendepuffer
+//Benutzter Speicher im Empfangspuffer
 uint8_t uart_size_buffer_rx(void)
 {
 	return (uart_infifo.count);
