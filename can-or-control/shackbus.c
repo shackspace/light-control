@@ -213,7 +213,7 @@ void shackbus_main(void)
 				if (msg.data[0] > 1)
 					msg.data[0] = 0;
 
-				//power_mgt_set_input_1 (1, msg.data[0]);
+				power_mgt_set_input_1 (1, msg.data[0]);
 				power_mgt_set_wait_on (1, 4); //DLE Kueche
 				power_mgt_set_wait_off(1, 5);
 				power_mgt_set_input_1 (2, msg.data[0]);
