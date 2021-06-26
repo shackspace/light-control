@@ -18,7 +18,7 @@ can-or-control:
 ===============
 - Hier wird der CAN-Bus mit dem Eltako RS485 von den Optionsräumen verbunden
 - Das Hauptschaltersignal wird über den CAN-Bus übermittelt.
-- Die Steuerung hat noch einen Eingang vom Münzzähler und kann dann das Warmwasser von der Dusche einschalten
+- Die Steuerung hat noch einen Eingang(Stromschleife für Optokoppler) vom Münzzähler und kann dann das Warmwasser von der Dusche einschalten
 - Es werden 4 Ausgangskanäle über RS485 angesteuert. Alle mit minimalen Zeitverzögerungen ein und aus damit man keine Sicherungen wirft.
   - DLE Dusche
   - DLE Küche
