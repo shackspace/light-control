@@ -1,3 +1,7 @@
+Deprecated
+======
+Dieser Code wurde hier weitergepflegt: https://git.shackspace.de/rz/node-light
+
 Readme
 ======
 
